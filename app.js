@@ -30,8 +30,11 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/reviews", reviewRoutes);
 
 // Health check
-app.get("/health", (_req, res) => {
-  res.json({ success: true, message: "Noah Automotive API is running" });
+app.get("/", (_req, res) => {
+  res.json({
+    success: true,
+    message: "noahautomotive_backend Automotive API is running",
+  });
 });
 
 // 404
