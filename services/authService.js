@@ -13,6 +13,11 @@ const generateToken = (userId) =>
 const generateOTP = () =>
   Math.floor(100000 + Math.random() * 900000).toString();
 
+const generateResetToken = (email) =>
+  jwt.sign({ email, type: "reset" }, process.env.JWT_SECRET, {
+    expiresIn: "15m",
+  });
+
 // ─── Register ─────────────────────────────────────────────────────────────────
 
 const register = async ({
@@ -124,6 +129,7 @@ const verifyOTP = async (email, otp) => {
       email,
       otp,
       isUsed: false,
+      isVerified: false,
       expiresAt: { gt: new Date() },
     },
   });
@@ -134,45 +140,69 @@ const verifyOTP = async (email, otp) => {
     throw err;
   }
 
+  // Mark as verified and extend expiry to 15 min so resetPassword window aligns with JWT
   await prisma.otpVerification.update({
     where: { id: record.id },
-    data: { isUsed: true },
+    data: {
+      isVerified: true,
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+    },
   });
 
-  // Short-lived token used only to authorize the reset-password request
-  const resetToken = jwt.sign(
-    { email, purpose: "password_reset" },
-    process.env.JWT_SECRET,
-    { expiresIn: "15m" },
-  );
-
+  const resetToken = generateResetToken(email);
   return { resetToken };
 };
 
 // ─── Reset Password ───────────────────────────────────────────────────────────
 
 const resetPassword = async (resetToken, newPassword) => {
-  let decoded;
+  let email;
   try {
-    decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
-  } catch {
-    const err = new Error("Invalid or expired reset token");
-    err.statusCode = 400;
+    const decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+    if (!decoded.email || decoded.type !== "reset") {
+      const err = new Error("Invalid reset token");
+      err.statusCode = 400;
+      throw err;
+    }
+    email = decoded.email;
+  } catch (err) {
+    if (!err.statusCode) {
+      err.message = "Invalid or expired reset token";
+      err.statusCode = 400;
+    }
     throw err;
   }
 
-  if (decoded.purpose !== "password_reset") {
-    const err = new Error("Invalid reset token");
+  // Find a verified, unused OTP for this email that hasn't expired
+  const record = await prisma.otpVerification.findFirst({
+    where: {
+      email,
+      isVerified: true,
+      isUsed: false,
+      expiresAt: { gt: new Date() },
+    },
+  });
+
+  if (!record) {
+    const err = new Error(
+      "OTP verification required or session expired. Please request a new OTP.",
+    );
     err.statusCode = 400;
     throw err;
   }
 
   const hashedPassword = await bcrypt.hash(newPassword, 12);
 
-  await prisma.user.update({
-    where: { email: decoded.email },
-    data: { password: hashedPassword },
-  });
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { email },
+      data: { password: hashedPassword },
+    }),
+    prisma.otpVerification.update({
+      where: { id: record.id },
+      data: { isUsed: true },
+    }),
+  ]);
 
   return { message: "Password reset successfully" };
 };

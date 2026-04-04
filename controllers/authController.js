@@ -1,9 +1,10 @@
 const authService = require("../services/authService");
+const { buildFileUrl } = require("../utils/helpers");
 
 const register = async (req, res, next) => {
   try {
     const { fullName, email, phoneNumber, password, address, role } = req.body;
-    const profileImage = req.file ? `/uploads/${req.file.filename}` : null;
+    const profileImage = req.file ? buildFileUrl(req.file.filename) : null;
 
     const result = await authService.register({
       fullName,
@@ -15,13 +16,11 @@ const register = async (req, res, next) => {
       role,
     });
 
-    res
-      .status(201)
-      .json({
-        success: true,
-        message: "Registration successful",
-        data: result,
-      });
+    res.status(201).json({
+      success: true,
+      message: "Registration successful",
+      data: result,
+    });
   } catch (error) {
     next(error);
   }
@@ -53,7 +52,7 @@ const verifyOTP = async (req, res, next) => {
     const result = await authService.verifyOTP(email, otp);
     res.json({
       success: true,
-      message: "OTP verified successfully",
+      message: "OTP verified successfully. You can now reset your password.",
       data: result,
     });
   } catch (error) {
@@ -63,7 +62,17 @@ const verifyOTP = async (req, res, next) => {
 
 const resetPassword = async (req, res, next) => {
   try {
-    const { resetToken, newPassword } = req.body;
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res
+        .status(401)
+        .json({
+          success: false,
+          message: "Reset token is required in Authorization header",
+        });
+    }
+    const resetToken = authHeader.split(" ")[1];
+    const { newPassword } = req.body;
     const result = await authService.resetPassword(resetToken, newPassword);
     res.json({ success: true, ...result });
   } catch (error) {

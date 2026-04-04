@@ -26,4 +26,14 @@ const buildPaginationMeta = (total, page, limit) => {
   };
 };
 
-module.exports = { paginate, buildPaginationMeta };
+/**
+ * Build a full public URL for an uploaded file.
+ * Falls back to a relative path when BASE_URL is not set.
+ * @param {string} filename - just the filename (e.g. "1234-abc.jpg")
+ */
+const buildFileUrl = (filename) => {
+  const base = (process.env.BASE_URL || "").replace(/\/$/, "");
+  return `${base}/uploads/${filename}`;
+};
+
+module.exports = { paginate, buildPaginationMeta, buildFileUrl };

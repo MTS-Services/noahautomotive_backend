@@ -1,8 +1,8 @@
 # Noah Automotive – API Testing Guide (Postman)
 
-> Base URL: `http://localhost:3000`  
-> All protected routes require the header:  
-> `Authorization: Bearer <token>`
+> **Local URL:** `http://localhost:3000`  
+> **Live URL:** `https://backendnoahautomotive.mtscorporate.com`  
+> All protected routes require the header: `Authorization: Bearer {{token}}`
 
 ---
 
@@ -10,17 +10,28 @@
 
 1. Create a **Collection** named `Noah Automotive`.
 2. In the collection **Variables** tab, add:
-   - `base_url` = `http://localhost:3000`
-   - `token` = _(leave empty – auto-filled after login)_
-3. On any Login/Register request, add this to the **Tests** tab to auto-save the token:
+
+   | Variable     | Initial Value                                    |
+   | ------------ | ------------------------------------------------ |
+   | `base_url`   | `https://backendnoahautomotive.mtscorporate.com` |
+   | `token`      | _(leave empty – auto-filled after login)_        |
+   | `resetToken` | _(leave empty – auto-filled after verify-otp)_   |
+
+3. On **Login** and **Register** requests, add this to the **Tests** tab to auto-save the auth token:
    ```js
    const res = pm.response.json();
    if (res.data && res.data.token) {
      pm.collectionVariables.set("token", res.data.token);
    }
    ```
-4. For all protected requests set the Authorization header to:  
-   `Bearer {{token}}`
+4. On the **Verify OTP** request, add this to the **Tests** tab to auto-save the reset token:
+   ```js
+   const res = pm.response.json();
+   if (res.data && res.data.resetToken) {
+     pm.collectionVariables.set("resetToken", res.data.resetToken);
+   }
+   ```
+5. For all protected requests set the **Authorization** header to: `Bearer {{token}}`
 
 ---
 
@@ -36,15 +47,15 @@
 
 **Body fields:**
 
-| Key          | Type | Required | Example            |
-| ------------ | ---- | -------- | ------------------ |
-| fullName     | Text | ✅       | `John Doe`         |
-| email        | Text | ✅       | `john@example.com` |
-| password     | Text | ✅       | `secret123`        |
-| phoneNumber  | Text | ❌       | `+1 555 000 1111`  |
-| address      | Text | ❌       | `123 Main St, NY`  |
-| role         | Text | ❌       | `USER` / `VENDOR`  |
-| profileImage | File | ❌       | _(upload image)_   |
+| Key          | Type | Required | Example                     |
+| ------------ | ---- | -------- | --------------------------- |
+| fullName     | Text | ✅       | `John Doe`                  |
+| email        | Text | ✅       | `john@example.com`          |
+| password     | Text | ✅       | `secret123`                 |
+| phoneNumber  | Text | ❌       | `+1 555 000 1111`           |
+| address      | Text | ❌       | `123 Main St, NY`           |
+| role         | Text | ❌       | `USER` / `VENDOR` / `ADMIN` |
+| profileImage | File | ❌       | _(upload image)_            |
 
 **Expected Response `201`:**
 
@@ -64,6 +75,14 @@
 ### 1.2 Register (Vendor)
 
 Same as 1.1 but set `role` = `VENDOR`.
+
+---
+
+### 1.3 Register (Admin)
+
+Same as 1.1 but set `role` = `ADMIN`.
+
+> Keep admin credentials safe. Only share the Admin `token` with trusted users.
 
 ---
 
@@ -163,10 +182,19 @@ Same as 1.1 but set `role` = `VENDOR`.
 ```json
 {
   "success": true,
-  "message": "OTP verified successfully",
-  "data": { "resetToken": "<short-lived jwt>" }
+  "message": "OTP verified successfully. You can now reset your password.",
+  "data": { "resetToken": "<short-lived jwt valid 15 min>" }
 }
 ```
+
+> Add this to the **Tests** tab to auto-save the reset token:
+>
+> ```js
+> const res = pm.response.json();
+> if (res.data && res.data.resetToken) {
+>   pm.collectionVariables.set("resetToken", res.data.resetToken);
+> }
+> ```
 
 ---
 
@@ -178,10 +206,18 @@ Same as 1.1 but set `role` = `VENDOR`.
 | **URL**    | `{{base_url}}/api/auth/reset-password` |
 | **Body**   | `raw → JSON`                           |
 
+> ⚠️ **Postman — Authorization header override required for this request:**
+>
+> 1. Open this request → **Authorization** tab
+> 2. Set Type to **Bearer Token**
+> 3. Set Token to `{{resetToken}}` (NOT `{{token}}`)
+>
+> This overrides the collection-level auth which uses the login token.
+
 ```json
 {
-  "resetToken": "<resetToken from step 1.6>",
-  "newPassword": "newSecret456"
+  "newPassword": "newSecret456",
+  "confirmedPassword": "newSecret456"
 }
 ```
 
@@ -193,6 +229,12 @@ Same as 1.1 but set `role` = `VENDOR`.
   "message": "Password reset successfully"
 }
 ```
+
+**Validation rules:**
+
+- `Authorization` header – `Bearer {{resetToken}}` from step 1.6 (expires in **15 minutes**)
+- `newPassword` – minimum 6 characters
+- `confirmedPassword` – must match `newPassword`
 
 ---
 
@@ -346,7 +388,7 @@ Same as 1.1 but set `role` = `VENDOR`.
 {
   "oldPassword": "secret123",
   "newPassword": "newSecret456",
-  "confirmPassword": "newSecret456"
+  "confirmedPassword": "newSecret456"
 }
 ```
 
@@ -479,9 +521,115 @@ Same as 1.1 but set `role` = `VENDOR`.
 
 ## 7. Admin (requires `ADMIN` role)
 
-> Register a user then manually set `role = 'ADMIN'` in the database, or seed one directly.
+> Register with `role = ADMIN` to get an admin account, then login to get your `{{token}}`.
 
-### 7.1 Get Requested (Pending) Listings
+---
+
+### 7.1 Get Members (Users and/or Vendors)
+
+|            |                                  |
+| ---------- | -------------------------------- |
+| **Method** | `GET`                            |
+| **URL**    | `{{base_url}}/api/admin/members` |
+| **Auth**   | `Bearer {{token}}` (ADMIN)       |
+
+**Query params:**
+
+| Param | Example | Description                                        |
+| ----- | ------- | -------------------------------------------------- |
+| role  | `USER`  | Filter by role: `USER`, `VENDOR`, or omit for both |
+| page  | `1`     | Page number (default 1)                            |
+| limit | `10`    | Items per page (default 10)                        |
+
+**Examples:**
+
+- All members: `GET /api/admin/members`
+- Only users: `GET /api/admin/members?role=USER`
+- Only vendors: `GET /api/admin/members?role=VENDOR`
+
+**Expected Response `200`:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "members": [
+      { "id": "...", "fullName": "...", "email": "...", "role": "USER", "isActive": true, "_count": { "listings": 0 }, ... },
+      { "id": "...", "fullName": "...", "email": "...", "role": "VENDOR", "isActive": true, "_count": { "listings": 5 }, ... }
+    ],
+    "pagination": { "total": 70, "page": 1, "limit": 10, "totalPages": 7 }
+  }
+}
+```
+
+---
+
+### 7.2 Get Member by ID
+
+|            |                                      |
+| ---------- | ------------------------------------ |
+| **Method** | `GET`                                |
+| **URL**    | `{{base_url}}/api/admin/members/:id` |
+| **Auth**   | `Bearer {{token}}` (ADMIN)           |
+
+> Works for both USER and VENDOR — just pass their `id`.
+
+---
+
+### 7.3 Update Member
+
+|            |                                      |
+| ---------- | ------------------------------------ |
+| **Method** | `PUT`                                |
+| **URL**    | `{{base_url}}/api/admin/members/:id` |
+| **Auth**   | `Bearer {{token}}` (ADMIN)           |
+| **Body**   | `raw → JSON`                         |
+
+All fields are optional — send only what you want to change:
+
+```json
+{
+  "fullName": "Updated Name",
+  "email": "newemail@example.com",
+  "phoneNumber": "+1 555 111 2222",
+  "address": "New Address",
+  "role": "VENDOR",
+  "isActive": false,
+  "password": "newpassword123"
+}
+```
+
+**Expected Response `200`:**
+
+```json
+{
+  "success": true,
+  "message": "Member updated successfully",
+  "data": { "id": "...", "fullName": "Updated Name", "role": "VENDOR", ... }
+}
+```
+
+---
+
+### 7.4 Delete Member
+
+|            |                                      |
+| ---------- | ------------------------------------ |
+| **Method** | `DELETE`                             |
+| **URL**    | `{{base_url}}/api/admin/members/:id` |
+| **Auth**   | `Bearer {{token}}` (ADMIN)           |
+
+> Works for both USER and VENDOR.
+
+**Expected Response `200`:**
+
+```json
+{ "success": true, "message": "User deleted successfully" }
+```
+
+---
+
+### 7.5 Get Requested (Pending) Listings
 
 |            |                                   |
 | ---------- | --------------------------------- |
@@ -493,7 +641,7 @@ Same as 1.1 but set `role` = `VENDOR`.
 
 ---
 
-### 7.2 Get Approved Listings
+### 7.6 Get Approved Listings
 
 |            |                                            |
 | ---------- | ------------------------------------------ |
@@ -503,7 +651,7 @@ Same as 1.1 but set `role` = `VENDOR`.
 
 ---
 
-### 7.3 Get Suspended Listings
+### 7.7 Get Suspended Listings
 
 |            |                                             |
 | ---------- | ------------------------------------------- |
@@ -513,7 +661,7 @@ Same as 1.1 but set `role` = `VENDOR`.
 
 ---
 
-### 7.4 Approve a Listing
+### 7.8 Approve a Listing
 
 |            |                                               |
 | ---------- | --------------------------------------------- |
@@ -523,7 +671,7 @@ Same as 1.1 but set `role` = `VENDOR`.
 
 ---
 
-### 7.5 Suspend a Listing
+### 7.9 Suspend a Listing
 
 |            |                                               |
 | ---------- | --------------------------------------------- |
@@ -533,37 +681,13 @@ Same as 1.1 but set `role` = `VENDOR`.
 
 ---
 
-### 7.6 Delete a Listing (Admin)
+### 7.10 Delete a Listing (Admin)
 
 |            |                                       |
 | ---------- | ------------------------------------- |
 | **Method** | `DELETE`                              |
 | **URL**    | `{{base_url}}/api/admin/listings/:id` |
 | **Auth**   | `Bearer {{token}}` (ADMIN)            |
-
----
-
-### 7.7 Get All Vendors
-
-|            |                                  |
-| ---------- | -------------------------------- |
-| **Method** | `GET`                            |
-| **URL**    | `{{base_url}}/api/admin/vendors` |
-| **Auth**   | `Bearer {{token}}` (ADMIN)       |
-
-**Query params:** `page`, `limit`
-
----
-
-### 7.8 Get All Users
-
-|            |                                |
-| ---------- | ------------------------------ |
-| **Method** | `GET`                          |
-| **URL**    | `{{base_url}}/api/admin/users` |
-| **Auth**   | `Bearer {{token}}` (ADMIN)     |
-
-**Query params:** `page`, `limit`
 
 ---
 

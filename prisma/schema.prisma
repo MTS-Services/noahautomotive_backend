@@ -186,12 +186,13 @@ model Message {
 // ─────────────────────────────────────────────
 
 model OtpVerification {
-  id        String   @id @default(uuid())
-  email     String
-  otp       String
-  expiresAt DateTime
-  isUsed    Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id         String   @id @default(uuid())
+  email      String
+  otp        String
+  expiresAt  DateTime
+  isUsed     Boolean  @default(false)
+  isVerified Boolean  @default(false)
+  createdAt  DateTime @default(now())
 
   @@index([email])
   @@map("otp_verifications")
