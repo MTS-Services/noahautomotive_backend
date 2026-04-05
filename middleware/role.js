@@ -1,7 +1,3 @@
-/**
- * Role-based access control middleware.
- * Usage: authorize('ADMIN') or authorize('ADMIN', 'VENDOR')
- */
 const authorize = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {

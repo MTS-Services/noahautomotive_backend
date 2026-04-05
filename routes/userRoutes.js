@@ -8,10 +8,8 @@ const {
   validateChangePassword,
 } = require("../middleware/validate");
 
-// GET /api/users/:id  – public profile (any role)
 router.get("/:id", userController.getUserProfile);
 
-// PUT /api/users/profile  – update own profile (User & Vendor)
 router.put(
   "/profile",
   authenticate,
@@ -20,7 +18,6 @@ router.put(
   userController.updateProfile,
 );
 
-// PUT /api/users/password  – change password
 router.put(
   "/password",
   authenticate,

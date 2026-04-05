@@ -20,10 +20,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 
-// Serve uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// ── Routes ────────────────────────────────────────────────────────────────────
 app.use("/api/auth", authRoutes);
 app.use("/api/listings", listingRoutes);
 app.use("/api/users", userRoutes);
@@ -31,7 +29,6 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/reviews", reviewRoutes);
 
-// Health check
 app.get("/", (_req, res) => {
   res.json({
     success: true,
@@ -39,12 +36,11 @@ app.get("/", (_req, res) => {
   });
 });
 
-// 404
 app.use((_req, res) => {
   res.status(404).json({ success: false, message: "Route not found" });
 });
 
-// Global error handler (must be last)
+// Global error handler
 app.use(errorHandler);
 
 module.exports = app;

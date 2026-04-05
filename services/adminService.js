@@ -15,9 +15,6 @@ const USER_SELECT = {
   updatedAt: true,
 };
 
-// ─── Members (Users & Vendors) ──────────────────────────────────────────────
-// role: 'USER' | 'VENDOR' | undefined (returns both)
-
 const getMembers = async (role, page, limit) => {
   const { skip, take } = paginate(page, limit);
 
@@ -47,8 +44,6 @@ const getMembers = async (role, page, limit) => {
   return { members, pagination: buildPaginationMeta(total, page, limit) };
 };
 
-// ─── Get by ID (any role) ─────────────────────────────────────────────────────
-
 const getUserById = async (id) => {
   const user = await prisma.user.findUnique({
     where: { id },
@@ -66,8 +61,6 @@ const getUserById = async (id) => {
 
   return user;
 };
-
-// ─── Update user / vendor ─────────────────────────────────────────────────────
 
 const updateUser = async (
   id,
@@ -113,8 +106,6 @@ const updateUser = async (
 
   return user;
 };
-
-// ─── Delete user / vendor ─────────────────────────────────────────────────────
 
 const deleteUser = async (id) => {
   const existing = await prisma.user.findUnique({ where: { id } });

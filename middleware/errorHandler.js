@@ -1,7 +1,6 @@
 const errorHandler = (err, req, res, next) => {
   console.error(err);
 
-  // Prisma unique constraint violation
   if (err.code === "P2002") {
     return res.status(409).json({
       success: false,
@@ -9,14 +8,12 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
-  // Prisma record not found
   if (err.code === "P2025") {
     return res
       .status(404)
       .json({ success: false, message: "Record not found" });
   }
 
-  // Multer file size error
   if (err.code === "LIMIT_FILE_SIZE") {
     return res
       .status(413)

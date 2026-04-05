@@ -1,8 +1,6 @@
 const bcrypt = require("bcryptjs");
 const prisma = require("../config/database");
 
-// ─── Get Public Profile ───────────────────────────────────────────────────────
-
 const getUserProfile = async (userId) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -26,8 +24,6 @@ const getUserProfile = async (userId) => {
 
   return user;
 };
-
-// ─── Update Profile (User & Vendor) ──────────────────────────────────────────
 
 const updateProfile = async (
   userId,
@@ -63,8 +59,6 @@ const updateProfile = async (
 
   return user;
 };
-
-// ─── Change Password ──────────────────────────────────────────────────────────
 
 const changePassword = async (userId, { oldPassword, newPassword }) => {
   const user = await prisma.user.findUnique({ where: { id: userId } });

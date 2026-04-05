@@ -3,8 +3,6 @@ const jwt = require("jsonwebtoken");
 const prisma = require("../config/database");
 const { sendOTPEmail } = require("./emailService");
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
 const generateToken = (userId) =>
   jwt.sign({ userId }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || "7d",
@@ -16,8 +14,6 @@ const generateResetToken = (email) =>
   jwt.sign({ email, type: "reset" }, process.env.JWT_SECRET, {
     expiresIn: "15m",
   });
-
-// ─── Register ─────────────────────────────────────────────────────────────────s
 
 const register = async ({
   fullName,
@@ -63,8 +59,6 @@ const register = async ({
   return { user, token };
 };
 
-// ─── Login ────────────────────────────────────────────────────────────────────
-
 const login = async ({ email, password }) => {
   const user = await prisma.user.findUnique({ where: { email } });
 
@@ -92,8 +86,6 @@ const login = async ({ email, password }) => {
   return { user: userWithoutPassword, token };
 };
 
-// ─── Forgot Password ──────────────────────────────────────────────────────────
-
 const forgotPassword = async (email) => {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
@@ -119,8 +111,6 @@ const forgotPassword = async (email) => {
 
   return { message: "OTP sent to your email address" };
 };
-
-// ─── Verify OTP ───────────────────────────────────────────────────────────────
 
 const verifyOTP = async (email, otp) => {
   const record = await prisma.otpVerification.findFirst({
@@ -151,8 +141,6 @@ const verifyOTP = async (email, otp) => {
   const resetToken = generateResetToken(email);
   return { resetToken };
 };
-
-// ─── Reset Password ───────────────────────────────────────────────────────────
 
 const resetPassword = async (resetToken, newPassword) => {
   let email;
@@ -205,8 +193,6 @@ const resetPassword = async (resetToken, newPassword) => {
 
   return { message: "Password reset successfully" };
 };
-
-// ─── Get Profile ──────────────────────────────────────────────────────────────
 
 const getProfile = async (userId) => {
   const user = await prisma.user.findUnique({

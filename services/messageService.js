@@ -1,8 +1,6 @@
 const prisma = require("../config/database");
 const { paginate, buildPaginationMeta } = require("../utils/helpers");
 
-// ─── Internal helper ──────────────────────────────────────────────────────────
-
 const getConversationDetail = async (conversationId, currentUserId) => {
   const conversation = await prisma.conversation.findUnique({
     where: { id: conversationId },
@@ -46,8 +44,6 @@ const getConversationDetail = async (conversationId, currentUserId) => {
     unreadCount,
   };
 };
-
-// ─── Start or Get Conversation ────────────────────────────────────────────────
 
 const startOrGetConversation = async (currentUserId, receiverId) => {
   if (currentUserId === receiverId) {
@@ -106,8 +102,6 @@ const startOrGetConversation = async (currentUserId, receiverId) => {
   };
 };
 
-// ─── Get All Conversations for User ──────────────────────────────────────────
-
 const getConversations = async (userId) => {
   const participations = await prisma.conversationParticipant.findMany({
     where: { userId },
@@ -121,8 +115,6 @@ const getConversations = async (userId) => {
 
   return conversations;
 };
-
-// ─── Get Messages in a Conversation ──────────────────────────────────────────
 
 const getConversationMessages = async (conversationId, userId, page, limit) => {
   const participant = await prisma.conversationParticipant.findUnique({
@@ -152,8 +144,6 @@ const getConversationMessages = async (conversationId, userId, page, limit) => {
 
   return { messages, pagination: buildPaginationMeta(total, page, limit) };
 };
-
-// ─── Send Message ─────────────────────────────────────────────────────────────
 
 const sendMessage = async (
   conversationId,
@@ -212,8 +202,6 @@ const sendMessage = async (
 
   return message;
 };
-
-// ─── Mark Messages as Read ────────────────────────────────────────────────────
 
 const markAsRead = async (conversationId, userId) => {
   const participant = await prisma.conversationParticipant.findUnique({
