@@ -10,15 +10,14 @@ const generateToken = (userId) =>
     expiresIn: process.env.JWT_EXPIRES_IN || "7d",
   });
 
-const generateOTP = () =>
-  Math.floor(10000 + Math.random() * 90000).toString();
+const generateOTP = () => Math.floor(10000 + Math.random() * 90000).toString();
 
 const generateResetToken = (email) =>
   jwt.sign({ email, type: "reset" }, process.env.JWT_SECRET, {
     expiresIn: "15m",
   });
 
-// ─── Register ─────────────────────────────────────────────────────────────────
+// ─── Register ─────────────────────────────────────────────────────────────────s
 
 const register = async ({
   fullName,
