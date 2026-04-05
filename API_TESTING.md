@@ -519,6 +519,9 @@ Same as 1.1 but set `role` = `ADMIN`.
 
 ---
 
+
+
+
 ## 7. Admin (requires `ADMIN` role)
 
 > Register with `role = ADMIN` to get an admin account, then login to get your `{{token}}`.

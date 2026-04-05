@@ -54,8 +54,8 @@ const validateVerifyOTP = (req, res, next) => {
   if (!email || !validateEmail(email)) {
     return fail(res, "A valid email address is required", "email");
   }
-  if (!otp || !/^\d{6}$/.test(otp.toString())) {
-    return fail(res, "OTP must be a 6-digit number", "otp");
+  if (!otp || !/^\d{5}$/.test(otp.toString())) {
+    return fail(res, "OTP must be a 5-digit number", "otp");
   }
 
   next();

@@ -10,9 +10,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ─────────────────────────────────────────────
-// ENUMS
-// ─────────────────────────────────────────────
 
 enum Role {
   ADMIN
@@ -46,9 +43,6 @@ enum Condition {
   USED
 }
 
-// ─────────────────────────────────────────────
-// USER
-// ─────────────────────────────────────────────
 
 model User {
   id           String   @id @default(uuid())
@@ -72,9 +66,6 @@ model User {
   @@map("users")
 }
 
-// ─────────────────────────────────────────────
-// LISTING
-// ─────────────────────────────────────────────
 
 model Listing {
   id           String           @id @default(uuid())
@@ -118,9 +109,6 @@ model ListingImage {
   @@map("listing_images")
 }
 
-// ─────────────────────────────────────────────
-// REVIEW / FEEDBACK
-// ─────────────────────────────────────────────
 
 model Review {
   id        String   @id @default(uuid())
@@ -137,9 +125,6 @@ model Review {
   @@map("reviews")
 }
 
-// ─────────────────────────────────────────────
-// MESSAGING
-// ─────────────────────────────────────────────
 
 model Conversation {
   id        String   @id @default(uuid())
@@ -167,7 +152,9 @@ model ConversationParticipant {
 
 model Message {
   id             String   @id @default(uuid())
-  content        String
+  content        String?
+  mediaUrl       String?
+  mediaType      String?  // "image" | "video"
   senderId       String
   receiverId     String
   conversationId String
@@ -181,9 +168,6 @@ model Message {
   @@map("messages")
 }
 
-// ─────────────────────────────────────────────
-// OTP VERIFICATION (forgot password)
-// ─────────────────────────────────────────────
 
 model OtpVerification {
   id         String   @id @default(uuid())

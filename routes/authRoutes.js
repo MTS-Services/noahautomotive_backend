@@ -19,29 +19,24 @@ router.post(
   authController.register,
 );
 
-// POST /api/auth/login
 router.post("/login", validateLogin, authController.login);
 
-// POST /api/auth/forgot-password
 router.post(
   "/forgot-password",
   validateForgotPassword,
   authController.forgotPassword,
 );
 
-// POST /api/auth/verify-otp
 router.post("/verify-otp", validateVerifyOTP, authController.verifyOTP);
 
-// POST /api/auth/reset-password
-// Authorization: Bearer <resetToken returned by verify-otp>
-// Body: { newPassword, confirmedPassword }
 router.post(
   "/reset-password",
   validateResetPassword,
   authController.resetPassword,
 );
 
-// GET /api/auth/me  (protected)
 router.get("/me", authenticate, authController.getMe);
+
+router.post("/logout", authenticate, authController.logout);
 
 module.exports = router;

@@ -64,12 +64,10 @@ const resetPassword = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res
-        .status(401)
-        .json({
-          success: false,
-          message: "Reset token is required in Authorization header",
-        });
+      return res.status(401).json({
+        success: false,
+        message: "Reset token is required in Authorization header",
+      });
     }
     const resetToken = authHeader.split(" ")[1];
     const { newPassword } = req.body;
@@ -89,6 +87,10 @@ const getMe = async (req, res, next) => {
   }
 };
 
+const logout = (req, res) => {
+  res.json({ success: true, message: "Logged out successfully" });
+};
+
 module.exports = {
   register,
   login,
@@ -96,4 +98,5 @@ module.exports = {
   verifyOTP,
   resetPassword,
   getMe,
+  logout,
 };
