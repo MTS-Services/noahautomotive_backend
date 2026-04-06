@@ -1,10 +1,22 @@
 const express = require("express");
 const router = express.Router();
+const reviewController = require("../controllers/reviewController");
+const { authenticate, optionalAuthenticate } = require("../middleware/auth");
+const { authorize } = require("../middleware/role");
 
-// TODO: Implement review routes
-// GET    /api/reviews/listing/:listingId  - reviews for a listing
-// POST   /api/reviews/listing/:listingId  - create review (authenticated USER)
-// PUT    /api/reviews/:id                 - edit own review
-// DELETE /api/reviews/:id                 - delete own review
+// ─── Public ───────────────────────────────────────────────────────────────────
+// GET /api/reviews/listing/:listingId   — anyone can read reviews + avg rating
+router.get("/listing/:listingId", reviewController.getListingReviews);
+
+router.post("/listing/:listingId", authenticate, reviewController.createReview);
+router.put("/:id", authenticate, reviewController.updateReview);
+router.delete("/:id", authenticate, reviewController.deleteReview);
+
+router.get(
+  "/",
+  authenticate,
+  authorize("ADMIN", "VENDOR"),
+  reviewController.getReviews,
+);
 
 module.exports = router;
