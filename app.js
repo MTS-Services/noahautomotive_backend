@@ -14,8 +14,14 @@ const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 
-// ── Core Middleware ────────────────────────────────────────────────────────────
-app.use(cors());
+app.use(
+  cors({
+    origin: "*",
+    credentials: false,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
@@ -40,7 +46,6 @@ app.use((_req, res) => {
   res.status(404).json({ success: false, message: "Route not found" });
 });
 
-// Global error handler
 app.use(errorHandler);
 
 module.exports = app;
