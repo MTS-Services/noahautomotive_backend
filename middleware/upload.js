@@ -83,5 +83,24 @@ const chatUpload = multer({
   limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB
 });
 
+const listingStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    const listingDir = path.join(__dirname, "..", "uploads", "listings");
+    ensureUploadDir(listingDir);
+    cb(null, listingDir);
+  },
+  filename: (_req, file, cb) => {
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    cb(null, `${uniqueSuffix}${path.extname(file.originalname).toLowerCase()}`);
+  },
+});
+
+const listingUpload = multer({
+  storage: listingStorage,
+  fileFilter,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB per file
+});
+
 module.exports = upload;
 module.exports.chatUpload = chatUpload;
+module.exports.listingUpload = listingUpload;

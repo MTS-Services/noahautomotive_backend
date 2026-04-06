@@ -50,4 +50,31 @@ const authenticate = async (req, res, next) => {
   }
 };
 
-module.exports = { authenticate };
+// Optional: attaches req.user if a valid token is present, never blocks the request
+const optionalAuthenticate = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) return next();
+
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        role: true,
+        isActive: true,
+      },
+    });
+
+    if (user && user.isActive) req.user = user;
+  } catch (_) {
+    // invalid/expired token — just proceed as unauthenticated
+  }
+  next();
+};
+
+module.exports = { authenticate, optionalAuthenticate };

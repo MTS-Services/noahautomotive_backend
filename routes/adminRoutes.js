@@ -12,11 +12,8 @@ router.get("/members/:id", adminController.getMemberById);
 router.put("/members/:id", adminController.updateMember);
 router.delete("/members/:id", adminController.deleteMember);
 
-router.get("/listings", adminController.getRequestedListings);
-router.get("/listings/approved", adminController.getApprovedListings);
-router.get("/listings/suspended", adminController.getSuspendedListings);
-router.put("/listings/:id/approve", adminController.approveListing);
-router.put("/listings/:id/suspend", adminController.suspendListing);
+router.get("/listings", adminController.getListings);
+router.put("/listings/:id/status", adminController.updateListingStatus);
 router.delete("/listings/:id", adminController.deleteListing);
 
 module.exports = router;
