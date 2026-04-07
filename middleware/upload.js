@@ -23,28 +23,26 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (_req, file, cb) => {
-  const allowed = /jpeg|jpg|png|webp/;
+  const allowed = /jpeg|jpg|png|webp|avif/;
   const extOk = allowed.test(path.extname(file.originalname).toLowerCase());
-  const mimeOk = allowed.test(file.mimetype);
+  const mimeOk = /image\/(jpeg|jpg|png|webp|avif)/.test(file.mimetype);
 
   if (extOk && mimeOk) {
     cb(null, true);
   } else {
-    cb(new Error("Only image files are allowed (jpeg, jpg, png, webp)"));
+    cb(new Error("Only image files are allowed (jpeg, jpg, png, webp, avif)"));
   }
 };
 
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+  limits: { fileSize: 60 * 1024 * 1024 }, // 60 MB
 });
 
-// ─── Chat media upload (images + videos) ──────────────────────────────────
-
-const ALLOWED_IMAGE_EXT = /jpeg|jpg|png|webp/;
+const ALLOWED_IMAGE_EXT = /jpeg|jpg|avif|png|webp/;
 const ALLOWED_VIDEO_EXT = /mp4|mov|avi|mkv|webm/;
-const ALLOWED_IMAGE_MIME = /image\/(jpeg|jpg|png|webp)/;
+const ALLOWED_IMAGE_MIME = /image\/(jpeg|jpg|avif|png|webp)/;
 const ALLOWED_VIDEO_MIME = /video\/(mp4|quicktime|x-msvideo|x-matroska|webm)/;
 
 const chatStorage = multer.diskStorage({
@@ -71,7 +69,7 @@ const chatFileFilter = (_req, file, cb) => {
   } else {
     cb(
       new Error(
-        "Only images (jpeg, jpg, png, webp) and videos (mp4, mov, avi, mkv, webm) are allowed",
+        "Only images (jpeg, jpg, avif, png, webp) and videos (mp4, mov, avi, mkv, webm) are allowed",
       ),
     );
   }
@@ -98,7 +96,7 @@ const listingStorage = multer.diskStorage({
 const listingUpload = multer({
   storage: listingStorage,
   fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB per file
+  limits: { fileSize: 60 * 1024 * 1024 }, // 60 MB per file
 });
 
 module.exports = upload;

@@ -14,13 +14,14 @@ const getUserProfile = async (req, res, next) => {
 // PUT /api/users/profile  – update own profile (User & Vendor)
 const updateProfile = async (req, res, next) => {
   try {
-    const { fullName, phoneNumber, address } = req.body;
+    const { fullName, phoneNumber, address, about } = req.body;
     const profileImage = req.file ? buildFileUrl(req.file.filename) : undefined;
 
     const user = await userService.updateProfile(req.user.id, {
       fullName,
       phoneNumber,
       address,
+      about,
       profileImage,
     });
 
@@ -48,4 +49,19 @@ const changePassword = async (req, res, next) => {
   }
 };
 
-module.exports = { getUserProfile, updateProfile, changePassword };
+// GET /api/users/vendors/:id  — public vendor profile + listings
+const getVendorProfile = async (req, res, next) => {
+  try {
+    const result = await userService.getVendorProfile(req.params.id, req.query);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  getUserProfile,
+  updateProfile,
+  changePassword,
+  getVendorProfile,
+};

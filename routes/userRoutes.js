@@ -8,6 +8,7 @@ const {
   validateChangePassword,
 } = require("../middleware/validate");
 
+router.get("/vendors/:id", userController.getVendorProfile);
 router.get("/:id", userController.getUserProfile);
 
 router.put(

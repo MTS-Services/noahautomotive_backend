@@ -51,6 +51,7 @@ model User {
   phoneNumber  String?
   password     String
   address      String?
+  about        String?
   profileImage String?
   role         Role     @default(USER)
   isActive     Boolean  @default(true)
