@@ -50,6 +50,14 @@ const getListings = async ({
   maxPrice,
   minYear,
   maxYear,
+  minMileage,
+  maxMileage,
+  minEngine,
+  maxEngine,
+  minSeats,
+  maxSeats,
+  sortBy,
+  sortOrder,
   search,
 }) => {
   const { skip, take } = paginate(page, limit);
@@ -61,6 +69,7 @@ const getListings = async ({
   if (fuel) where.fuel = fuel;
   if (transmission) where.transmission = transmission;
   if (condition) where.condition = condition;
+
   if (minPrice || maxPrice) {
     where.price = {};
     if (minPrice) where.price.gte = parseFloat(minPrice);
@@ -71,6 +80,21 @@ const getListings = async ({
     if (minYear) where.year.gte = parseInt(minYear, 10);
     if (maxYear) where.year.lte = parseInt(maxYear, 10);
   }
+  if (minMileage || maxMileage) {
+    where.mileage = {};
+    if (minMileage) where.mileage.gte = parseInt(minMileage, 10);
+    if (maxMileage) where.mileage.lte = parseInt(maxMileage, 10);
+  }
+  if (minEngine || maxEngine) {
+    where.horsepower = {};
+    if (minEngine) where.horsepower.gte = parseInt(minEngine, 10);
+    if (maxEngine) where.horsepower.lte = parseInt(maxEngine, 10);
+  }
+  if (minSeats || maxSeats) {
+    where.seats = {};
+    if (minSeats) where.seats.gte = parseInt(minSeats, 10);
+    if (maxSeats) where.seats.lte = parseInt(maxSeats, 10);
+  }
   if (search) {
     where.OR = [
       { title: { contains: search, mode: "insensitive" } },
@@ -80,11 +104,15 @@ const getListings = async ({
     ];
   }
 
+  const SORT_FIELDS = ["price", "year", "mileage", "createdAt"];
+  const orderByField = SORT_FIELDS.includes(sortBy) ? sortBy : "createdAt";
+  const orderByDir = sortOrder === "asc" ? "asc" : "desc";
+
   const [listings, total] = await prisma.$transaction([
     prisma.listing.findMany({
       where,
       select: LISTING_SELECT,
-      orderBy: { createdAt: "desc" },
+      orderBy: { [orderByField]: orderByDir },
       skip,
       take,
     }),

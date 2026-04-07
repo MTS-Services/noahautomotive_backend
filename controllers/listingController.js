@@ -17,6 +17,14 @@ const getListings = async (req, res, next) => {
       maxPrice,
       minYear,
       maxYear,
+      minMileage,
+      maxMileage,
+      minEngine,
+      maxEngine,
+      minSeats,
+      maxSeats,
+      sortBy,
+      sortOrder,
       search,
     } = req.query;
     const result = await listingService.getListings({
@@ -31,6 +39,14 @@ const getListings = async (req, res, next) => {
       maxPrice,
       minYear,
       maxYear,
+      minMileage,
+      maxMileage,
+      minEngine,
+      maxEngine,
+      minSeats,
+      maxSeats,
+      sortBy,
+      sortOrder,
       search,
     });
     res.json({ success: true, data: result });
