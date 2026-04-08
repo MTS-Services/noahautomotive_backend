@@ -10,6 +10,12 @@ const { listingUpload } = require("../middleware/upload");
 // GET /api/listings/:id      - single approved listing
 router.get("/", listingController.getListings);
 router.get(
+  "/dashboard",
+  authenticate,
+  authorize("VENDOR"),
+  listingController.getVendorDashboard,
+);
+router.get(
   "/my",
   authenticate,
   authorize("VENDOR"),

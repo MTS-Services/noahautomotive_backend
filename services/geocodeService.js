@@ -101,7 +101,6 @@ const getAddressSuggestions = async (query, limit = 8) => {
         // Compose: "Neighbourhood, City, Region, Country" — skip nulls
         const parts = [placeName, city, region, country].filter(Boolean);
 
-        // Remove consecutive duplicates (e.g. "Dhaka, Dhaka, ...")
         const deduped = parts.filter((p, i) => i === 0 || p !== parts[i - 1]);
 
         const display =

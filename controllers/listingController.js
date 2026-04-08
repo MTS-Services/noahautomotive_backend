@@ -157,6 +157,16 @@ const deleteListing = async (req, res, next) => {
   }
 };
 
+// GET /api/listings/dashboard
+const getVendorDashboard = async (req, res, next) => {
+  try {
+    const data = await listingService.getVendorDashboard(req.user.id);
+    res.json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getListings,
   getListingById,
@@ -165,4 +175,5 @@ module.exports = {
   updateListing,
   deleteListingImage,
   deleteListing,
+  getVendorDashboard,
 };

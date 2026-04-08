@@ -466,6 +466,67 @@ const setListingStatus = async (id, status) => {
   return listing;
 };
 
+// ─── Vendor Dashboard ────────────────────────────────────────────────────────
+
+const getVendorDashboard = async (vendorId) => {
+  // Run all counts + recent listings in parallel
+  const [
+    total,
+    active,
+    pending,
+    rejected,
+    suspended,
+    totalMessages,
+    recentListings,
+  ] = await prisma.$transaction([
+    // Total listings
+    prisma.listing.count({ where: { vendorId } }),
+    // Active (APPROVED)
+    prisma.listing.count({ where: { vendorId, status: "APPROVED" } }),
+    // Pending approval
+    prisma.listing.count({ where: { vendorId, status: "PENDING" } }),
+    // Rejected
+    prisma.listing.count({ where: { vendorId, status: "REJECTED" } }),
+    // Suspended
+    prisma.listing.count({ where: { vendorId, status: "SUSPENDED" } }),
+    // Total messages received by this vendor
+    prisma.message.count({ where: { receiverId: vendorId } }),
+    // 5 most recent listings
+    prisma.listing.findMany({
+      where: { vendorId },
+      select: {
+        id: true,
+        title: true,
+        price: true,
+        make: true,
+        model: true,
+        year: true,
+        status: true,
+        createdAt: true,
+        images: {
+          select: { id: true, url: true },
+          orderBy: { createdAt: "asc" },
+          take: 1,
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    }),
+  ]);
+
+  return {
+    stats: {
+      totalListings: total,
+      activeListings: active,
+      pendingApproval: pending,
+      rejectedListings: rejected,
+      suspendedListings: suspended,
+      totalMessages,
+    },
+    recentListings,
+  };
+};
+
 module.exports = {
   getListings,
   getListingById,
@@ -476,4 +537,5 @@ module.exports = {
   deleteListing,
   getListingsByStatus,
   setListingStatus,
+  getVendorDashboard,
 };
