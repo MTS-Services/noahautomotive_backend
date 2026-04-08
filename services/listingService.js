@@ -4,6 +4,7 @@ const {
   buildPaginationMeta,
   buildFileUrl,
 } = require("../utils/helpers");
+const { geocodeAddress, geocodeSearchLocation } = require("./geocodeService");
 
 // ─── Shared select shape ──────────────────────────────────────────────────────
 
@@ -26,6 +27,8 @@ const LISTING_SELECT = {
   condition: true,
   sellerName: true,
   address: true,
+  latitude: true,
+  longitude: true,
   status: true,
   createdAt: true,
   updatedAt: true,
@@ -59,6 +62,8 @@ const getListings = async ({
   sortBy,
   sortOrder,
   search,
+  location,
+  radius,
 }) => {
   const { skip, take } = paginate(page, limit);
 
@@ -108,6 +113,60 @@ const getListings = async ({
   const orderByField = SORT_FIELDS.includes(sortBy) ? sortBy : "createdAt";
   const orderByDir = sortOrder === "asc" ? "asc" : "desc";
 
+  // ── Location + radius search (Haversine) ──────────────────────────────────
+  if (location && radius) {
+    const radiusKm = parseFloat(radius);
+    if (isNaN(radiusKm) || radiusKm <= 0) {
+      const err = new Error("radius must be a positive number (km)");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const coords = await geocodeSearchLocation(location);
+    if (!coords) {
+      const err = new Error("Could not geocode the provided location");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const { latitude: lat, longitude: lng } = coords;
+
+    // Haversine bounding box pre-filter (1 degree ≈ 111 km)
+    const latDelta = radiusKm / 111.0;
+    const lngDelta = radiusKm / (111.0 * Math.cos((lat * Math.PI) / 180));
+
+    where.latitude = { gte: lat - latDelta, lte: lat + latDelta };
+    where.longitude = { gte: lng - lngDelta, lte: lng + lngDelta };
+
+    // Fetch with bounding box, then apply exact Haversine filter in JS
+    const candidates = await prisma.listing.findMany({
+      where,
+      select: { ...LISTING_SELECT, latitude: true, longitude: true },
+      orderBy: { [orderByField]: orderByDir },
+    });
+
+    const R = 6371; // Earth radius in km
+    const toRad = (d) => (d * Math.PI) / 180;
+    const withinRadius = candidates.filter((l) => {
+      if (l.latitude == null || l.longitude == null) return false;
+      const dLat = toRad(l.latitude - lat);
+      const dLng = toRad(l.longitude - lng);
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat)) *
+          Math.cos(toRad(l.latitude)) *
+          Math.sin(dLng / 2) ** 2;
+      const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return dist <= radiusKm;
+    });
+
+    const total = withinRadius.length;
+    const p = Math.max(1, parseInt(page, 10));
+    const l = Math.max(1, parseInt(limit, 10));
+    const listings = withinRadius.slice((p - 1) * l, p * l);
+    return { listings, pagination: buildPaginationMeta(total, page, limit) };
+  }
+  // ─────────────────────────────────────────────────────────────────────────
   const [listings, total] = await prisma.$transaction([
     prisma.listing.findMany({
       where,
@@ -198,6 +257,9 @@ const createListing = async (vendorId, data, imageFiles) => {
     throw err;
   }
 
+  // Geocode the address (non-blocking — null if it fails)
+  const coords = await geocodeAddress(data.address);
+
   const listing = await prisma.listing.create({
     data: {
       title: data.title,
@@ -217,6 +279,8 @@ const createListing = async (vendorId, data, imageFiles) => {
       condition: data.condition,
       sellerName: data.sellerName,
       address: data.address,
+      latitude: coords?.latitude ?? null,
+      longitude: coords?.longitude ?? null,
       vendor: { connect: { id: vendorId } },
       images: imageFiles?.length
         ? {
@@ -287,6 +351,13 @@ const updateListing = async (
     updateData.horsepower = parseInt(data.horsepower, 10);
   if (data.doors !== undefined) updateData.doors = parseInt(data.doors, 10);
   if (data.seats !== undefined) updateData.seats = parseInt(data.seats, 10);
+
+  // If address changed, re-geocode
+  if (data.address !== undefined) {
+    const coords = await geocodeAddress(data.address);
+    updateData.latitude = coords?.latitude ?? null;
+    updateData.longitude = coords?.longitude ?? null;
+  }
 
   // Vendor re-submitting a rejected listing resets it to PENDING for re-review
   if (requesterRole === "VENDOR" && existing.status === "REJECTED") {

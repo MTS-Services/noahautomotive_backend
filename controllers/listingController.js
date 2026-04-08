@@ -26,6 +26,8 @@ const getListings = async (req, res, next) => {
       sortBy,
       sortOrder,
       search,
+      location,
+      radius,
     } = req.query;
     const result = await listingService.getListings({
       page,
@@ -48,6 +50,8 @@ const getListings = async (req, res, next) => {
       sortBy,
       sortOrder,
       search,
+      location,
+      radius,
     });
     res.json({ success: true, data: result });
   } catch (error) {

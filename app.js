@@ -10,6 +10,7 @@ const userRoutes = require("./routes/userRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
+const geocodeRoutes = require("./routes/geocodeRoutes");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
@@ -34,6 +35,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/geocode", geocodeRoutes);
 
 app.get("/", (_req, res) => {
   res.json({
