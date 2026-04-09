@@ -1,8 +1,6 @@
 const listingService = require("../services/listingService");
 
 // ─── Public ───────────────────────────────────────────────────────────────────
-
-// GET /api/listings
 const getListings = async (req, res, next) => {
   try {
     const {
@@ -59,7 +57,6 @@ const getListings = async (req, res, next) => {
   }
 };
 
-// GET /api/listings/:id
 const getListingById = async (req, res, next) => {
   try {
     const listing = await listingService.getListingById(
@@ -73,9 +70,6 @@ const getListingById = async (req, res, next) => {
   }
 };
 
-// ─── Vendor ───────────────────────────────────────────────────────────────────
-
-// GET /api/listings/my
 const getMyListings = async (req, res, next) => {
   try {
     const { page = 1, limit = 10, status } = req.query;
@@ -90,7 +84,6 @@ const getMyListings = async (req, res, next) => {
   }
 };
 
-// POST /api/listings
 const createListing = async (req, res, next) => {
   try {
     const listing = await listingService.createListing(
@@ -108,7 +101,6 @@ const createListing = async (req, res, next) => {
   }
 };
 
-// PUT /api/listings/:id
 const updateListing = async (req, res, next) => {
   try {
     const listing = await listingService.updateListing(
@@ -128,7 +120,6 @@ const updateListing = async (req, res, next) => {
   }
 };
 
-// DELETE /api/listings/:id/images/:imageId
 const deleteListingImage = async (req, res, next) => {
   try {
     const result = await listingService.deleteListingImage(
@@ -143,7 +134,6 @@ const deleteListingImage = async (req, res, next) => {
   }
 };
 
-// DELETE /api/listings/:id
 const deleteListing = async (req, res, next) => {
   try {
     const result = await listingService.deleteListing(
@@ -157,7 +147,6 @@ const deleteListing = async (req, res, next) => {
   }
 };
 
-// GET /api/listings/dashboard
 const getVendorDashboard = async (req, res, next) => {
   try {
     const data = await listingService.getVendorDashboard(req.user.id);

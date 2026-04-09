@@ -8,8 +8,6 @@ const ensureUploadDir = (dir) => {
   }
 };
 
-// ─── Profile image upload ──────────────────────────────────────────────────
-
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
     const uploadDir = path.join(__dirname, "..", "uploads");
@@ -37,7 +35,7 @@ const fileFilter = (_req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 60 * 1024 * 1024 }, // 60 MB
+  limits: { fileSize: 60 * 1024 * 1024 },
 });
 
 const ALLOWED_IMAGE_EXT = /jpeg|jpg|avif|png|webp/;
@@ -78,7 +76,7 @@ const chatFileFilter = (_req, file, cb) => {
 const chatUpload = multer({
   storage: chatStorage,
   fileFilter: chatFileFilter,
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB
+  limits: { fileSize: 50 * 1024 * 1024 },
 });
 
 const listingStorage = multer.diskStorage({
@@ -96,7 +94,7 @@ const listingStorage = multer.diskStorage({
 const listingUpload = multer({
   storage: listingStorage,
   fileFilter,
-  limits: { fileSize: 60 * 1024 * 1024 }, // 60 MB per file
+  limits: { fileSize: 60 * 1024 * 1024 },
 });
 
 module.exports = upload;

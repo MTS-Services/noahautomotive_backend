@@ -6,8 +6,6 @@ const {
 } = require("../utils/helpers");
 const { geocodeAddress, geocodeSearchLocation } = require("./geocodeService");
 
-// ─── Shared select shape ──────────────────────────────────────────────────────
-
 const LISTING_SELECT = {
   id: true,
   title: true,
@@ -38,8 +36,6 @@ const LISTING_SELECT = {
   images: { select: { id: true, url: true }, orderBy: { createdAt: "asc" } },
   _count: { select: { reviews: true } },
 };
-
-// ─── Browse / Filter (public — APPROVED only) ────────────────────────────────
 
 const getListings = async ({
   page,
@@ -113,7 +109,6 @@ const getListings = async ({
   const orderByField = SORT_FIELDS.includes(sortBy) ? sortBy : "createdAt";
   const orderByDir = sortOrder === "asc" ? "asc" : "desc";
 
-  // ── Location + radius search (Haversine) ──────────────────────────────────
   if (location && radius) {
     const radiusKm = parseFloat(radius);
     if (isNaN(radiusKm) || radiusKm <= 0) {
@@ -181,11 +176,6 @@ const getListings = async ({
   return { listings, pagination: buildPaginationMeta(total, page, limit) };
 };
 
-// ─── Single listing detail ───────────────────────────────────────────────────
-// Public/USER: APPROVED only
-// VENDOR: own listing any status
-// ADMIN: any listing any status
-
 const getListingById = async (id, requesterId = null, requesterRole = null) => {
   const listing = await prisma.listing.findUnique({
     where: { id },
@@ -198,14 +188,11 @@ const getListingById = async (id, requesterId = null, requesterRole = null) => {
     throw err;
   }
 
-  // ADMIN can see any listing
   if (requesterRole === "ADMIN") return listing;
 
-  // VENDOR can see their own listing regardless of status
   if (requesterRole === "VENDOR" && listing.vendor.id === requesterId)
     return listing;
 
-  // Everyone else: APPROVED only
   if (listing.status !== "APPROVED") {
     const err = new Error("Listing not found");
     err.statusCode = 404;
@@ -214,8 +201,6 @@ const getListingById = async (id, requesterId = null, requesterRole = null) => {
 
   return listing;
 };
-
-// ─── Vendor: get own listings (all statuses, filterable) ─────────────────────
 
 const getMyListings = async (vendorId, { page, limit, status }) => {
   const { skip, take } = paginate(page, limit);
@@ -247,8 +232,6 @@ const getMyListings = async (vendorId, { page, limit, status }) => {
   return { listings, pagination: buildPaginationMeta(total, page, limit) };
 };
 
-// ─── Create listing (VENDOR) ──────────────────────────────────────────────────
-
 const createListing = async (vendorId, data, imageFiles) => {
   const price = parseFloat(data.price);
   if (isNaN(price)) {
@@ -257,7 +240,6 @@ const createListing = async (vendorId, data, imageFiles) => {
     throw err;
   }
 
-  // Geocode the address (non-blocking — null if it fails)
   const coords = await geocodeAddress(data.address);
 
   const listing = await prisma.listing.create({
@@ -294,8 +276,6 @@ const createListing = async (vendorId, data, imageFiles) => {
   });
   return listing;
 };
-
-// ─── Update listing (VENDOR owns it, or ADMIN) ───────────────────────────────
 
 const updateListing = async (
   id,
@@ -380,8 +360,6 @@ const updateListing = async (
   return listing;
 };
 
-// ─── Delete a single listing image ───────────────────────────────────────────
-
 const deleteListingImage = async (
   listingId,
   imageId,
@@ -411,8 +389,6 @@ const deleteListingImage = async (
   return { message: "Image deleted" };
 };
 
-// ─── Delete listing (VENDOR owns, or ADMIN) ───────────────────────────────────
-
 const deleteListing = async (id, requesterId, requesterRole) => {
   const existing = await prisma.listing.findUnique({ where: { id } });
   if (!existing) {
@@ -428,8 +404,6 @@ const deleteListing = async (id, requesterId, requesterRole) => {
   await prisma.listing.delete({ where: { id } });
   return { message: "Listing deleted successfully" };
 };
-
-// ─── Admin: get listings by status ────────────────────────────────────────────
 
 const getListingsByStatus = async (status, { page, limit }) => {
   const { skip, take } = paginate(page, limit);
@@ -449,8 +423,6 @@ const getListingsByStatus = async (status, { page, limit }) => {
   return { listings, pagination: buildPaginationMeta(total, page, limit) };
 };
 
-// ─── Admin: change listing status ────────────────────────────────────────────
-
 const setListingStatus = async (id, status) => {
   const existing = await prisma.listing.findUnique({ where: { id } });
   if (!existing) {
@@ -466,10 +438,7 @@ const setListingStatus = async (id, status) => {
   return listing;
 };
 
-// ─── Vendor Dashboard ────────────────────────────────────────────────────────
-
 const getVendorDashboard = async (vendorId) => {
-  // Run all counts + recent listings in parallel
   const [
     total,
     active,
@@ -479,17 +448,11 @@ const getVendorDashboard = async (vendorId) => {
     totalMessages,
     recentListings,
   ] = await prisma.$transaction([
-    // Total listings
     prisma.listing.count({ where: { vendorId } }),
-    // Active (APPROVED)
     prisma.listing.count({ where: { vendorId, status: "APPROVED" } }),
-    // Pending approval
     prisma.listing.count({ where: { vendorId, status: "PENDING" } }),
-    // Rejected
     prisma.listing.count({ where: { vendorId, status: "REJECTED" } }),
-    // Suspended
     prisma.listing.count({ where: { vendorId, status: "SUSPENDED" } }),
-    // Total messages received by this vendor
     prisma.message.count({ where: { receiverId: vendorId } }),
     // 5 most recent listings
     prisma.listing.findMany({

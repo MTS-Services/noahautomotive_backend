@@ -104,7 +104,7 @@ const forgotPassword = async (email) => {
   });
 
   const otp = generateOTP();
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
   await prisma.otpVerification.create({
     data: { email, otp, expiresAt },
@@ -132,7 +132,6 @@ const verifyOTP = async (email, otp) => {
     throw err;
   }
 
-  // Mark as verified and extend expiry to 15 min so resetPassword window aligns with JWT
   await prisma.otpVerification.update({
     where: { id: record.id },
     data: {
@@ -163,7 +162,6 @@ const resetPassword = async (resetToken, newPassword) => {
     throw err;
   }
 
-  // Find a verified, unused OTP for this email that hasn't expired
   const record = await prisma.otpVerification.findFirst({
     where: {
       email,

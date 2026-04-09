@@ -5,7 +5,6 @@ const path = require("path");
 const IMAGE_EXT = /jpeg|jpg|png|webp/;
 const VIDEO_EXT = /mp4|mov|avi|mkv|webm/;
 
-// POST /api/messages/conversations
 const startOrGetConversation = async (req, res, next) => {
   try {
     const { receiverId } = req.body;
@@ -24,7 +23,6 @@ const startOrGetConversation = async (req, res, next) => {
   }
 };
 
-// GET /api/messages/conversations
 const getConversations = async (req, res, next) => {
   try {
     const conversations = await messageService.getConversations(req.user.id);
@@ -34,7 +32,6 @@ const getConversations = async (req, res, next) => {
   }
 };
 
-// GET /api/messages/conversations/:id
 const getConversationMessages = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -51,7 +48,6 @@ const getConversationMessages = async (req, res, next) => {
   }
 };
 
-// POST /api/messages/conversations/:id
 const sendMessage = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -70,12 +66,10 @@ const sendMessage = async (req, res, next) => {
     }
 
     if (!content && !mediaUrl) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Message must have content or a media file",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Message must have content or a media file",
+      });
     }
 
     const message = await messageService.sendMessage(
@@ -91,7 +85,6 @@ const sendMessage = async (req, res, next) => {
   }
 };
 
-// PUT /api/messages/conversations/:id/read
 const markAsRead = async (req, res, next) => {
   try {
     const { id } = req.params;

@@ -6,8 +6,7 @@ const { authorize } = require("../middleware/role");
 const { listingUpload } = require("../middleware/upload");
 
 // ─── Public ───────────────────────────────────────────────────────────────────
-// GET /api/listings          - browse approved listings
-// GET /api/listings/:id      - single approved listing
+
 router.get("/", listingController.getListings);
 router.get(
   "/dashboard",
@@ -23,11 +22,6 @@ router.get(
 );
 router.get("/:id", optionalAuthenticate, listingController.getListingById);
 
-// ─── Vendor ───────────────────────────────────────────────────────────────────
-// POST   /api/listings          - create listing (up to 10 images)
-// PUT    /api/listings/:id      - edit own listing
-// DELETE /api/listings/:id/images/:imageId - remove one image
-// DELETE /api/listings/:id      - delete own listing
 router.post(
   "/",
   authenticate,

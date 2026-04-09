@@ -50,7 +50,6 @@ const authenticate = async (req, res, next) => {
   }
 };
 
-// Optional: attaches req.user if a valid token is present, never blocks the request
 const optionalAuthenticate = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
@@ -71,9 +70,7 @@ const optionalAuthenticate = async (req, res, next) => {
     });
 
     if (user && user.isActive) req.user = user;
-  } catch (_) {
-    // invalid/expired token — just proceed as unauthenticated
-  }
+  } catch (_) {}
   next();
 };
 

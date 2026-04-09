@@ -6,7 +6,6 @@ const { authorize } = require("../middleware/role");
 
 router.use(authenticate, authorize("ADMIN"));
 
-// (no role)    → list both
 router.get("/members", adminController.getMembers);
 router.get("/members/:id", adminController.getMemberById);
 router.put("/members/:id", adminController.updateMember);

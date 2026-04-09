@@ -11,7 +11,6 @@ const {
   validateResetPassword,
 } = require("../middleware/validate");
 
-// POST /api/auth/register
 router.post(
   "/register",
   upload.single("profileImage"),

@@ -1,7 +1,6 @@
 const userService = require("../services/userService");
 const { buildFileUrl } = require("../utils/helpers");
 
-// GET /api/users/:id  – public seller / user profile
 const getUserProfile = async (req, res, next) => {
   try {
     const user = await userService.getUserProfile(req.params.id);
@@ -11,7 +10,6 @@ const getUserProfile = async (req, res, next) => {
   }
 };
 
-// PUT /api/users/profile  – update own profile (User & Vendor)
 const updateProfile = async (req, res, next) => {
   try {
     const { fullName, phoneNumber, address, about } = req.body;
@@ -35,7 +33,6 @@ const updateProfile = async (req, res, next) => {
   }
 };
 
-// PUT /api/users/password  – change password
 const changePassword = async (req, res, next) => {
   try {
     const { oldPassword, newPassword } = req.body;
@@ -49,7 +46,6 @@ const changePassword = async (req, res, next) => {
   }
 };
 
-// GET /api/users/vendors/:id  — public vendor profile + listings
 const getVendorProfile = async (req, res, next) => {
   try {
     const result = await userService.getVendorProfile(req.params.id, req.query);

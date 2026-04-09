@@ -4,8 +4,6 @@ const { validateEmail, validatePassword } = require("../utils/validators");
 const fail = (res, message, field) =>
   res.status(400).json({ success: false, message, ...(field && { field }) });
 
-// ─── Auth validators ──────────────────────────────────────────────────────────
-
 const validateRegister = (req, res, next) => {
   const { fullName, email, password, role } = req.body;
 
@@ -80,8 +78,6 @@ const validateResetPassword = (req, res, next) => {
 
   next();
 };
-
-// ─── Profile update validators ────────────────────────────────────────────────
 
 const validateUpdateProfile = (req, res, next) => {
   const { email, phoneNumber } = req.body;

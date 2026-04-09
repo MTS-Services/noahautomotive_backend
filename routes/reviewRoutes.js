@@ -4,8 +4,6 @@ const reviewController = require("../controllers/reviewController");
 const { authenticate, optionalAuthenticate } = require("../middleware/auth");
 const { authorize } = require("../middleware/role");
 
-// ─── Public ───────────────────────────────────────────────────────────────────
-// GET /api/reviews/listing/:listingId   — anyone can read reviews + avg rating
 router.get("/listing/:listingId", reviewController.getListingReviews);
 
 router.post("/listing/:listingId", authenticate, reviewController.createReview);

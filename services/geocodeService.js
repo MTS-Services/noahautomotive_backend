@@ -93,12 +93,10 @@ const getAddressSuggestions = async (query, limit = 8) => {
         const city =
           a.city || a.town || a.village || a.municipality || a.county || null;
 
-        // Admin region
         const region = a.state_district || a.state || a.region || null;
 
         const country = a.country || null;
 
-        // Compose: "Neighbourhood, City, Region, Country" — skip nulls
         const parts = [placeName, city, region, country].filter(Boolean);
 
         const deduped = parts.filter((p, i) => i === 0 || p !== parts[i - 1]);
@@ -114,7 +112,6 @@ const getAddressSuggestions = async (query, limit = 8) => {
         };
       })
       .filter((r) => {
-        // Deduplicate by display label
         if (seen.has(r.display)) return false;
         seen.add(r.display);
         return true;

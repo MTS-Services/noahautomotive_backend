@@ -12,7 +12,6 @@ router.get("/conversations", messageController.getConversations);
 
 router.get("/conversations/:id", messageController.getConversationMessages);
 
-// Send a message (text, image, video, or text + media)
 router.post(
   "/conversations/:id",
   chatUpload.single("media"),
