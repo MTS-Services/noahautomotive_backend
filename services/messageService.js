@@ -116,7 +116,7 @@ const getConversations = async (userId) => {
   return conversations;
 };
 
-const getConversationMessages = async (conversationId, userId, page, limit) => {
+const getConversationMessages = async (conversationId, userId) => {
   const participant = await prisma.conversationParticipant.findUnique({
     where: { conversationId_userId: { conversationId, userId } },
   });
@@ -127,14 +127,9 @@ const getConversationMessages = async (conversationId, userId, page, limit) => {
     throw err;
   }
 
-  const { skip, take } = paginate(page, limit);
-  const total = await prisma.message.count({ where: { conversationId } });
-
   const messages = await prisma.message.findMany({
     where: { conversationId },
     orderBy: { createdAt: "asc" },
-    skip,
-    take,
     include: {
       sender: {
         select: { id: true, fullName: true, profileImage: true, role: true },
@@ -142,7 +137,7 @@ const getConversationMessages = async (conversationId, userId, page, limit) => {
     },
   });
 
-  return { messages, pagination: buildPaginationMeta(total, page, limit) };
+  return { messages };
 };
 
 const sendMessage = async (

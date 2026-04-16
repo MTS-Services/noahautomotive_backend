@@ -36,12 +36,9 @@ const getConversations = async (req, res, next) => {
 const getConversationMessages = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { page = 1, limit = 20 } = req.query;
     const result = await messageService.getConversationMessages(
       id,
       req.user.id,
-      page,
-      limit,
     );
     res.json({ success: true, ...result });
   } catch (error) {
