@@ -1,5 +1,6 @@
 const messageService = require("../services/messageService");
 const { buildFileUrl } = require("../utils/helpers");
+const { getIo } = require("../socket/ioInstance");
 const path = require("path");
 
 const IMAGE_EXT = /jpeg|jpg|png|webp/;
@@ -79,6 +80,20 @@ const sendMessage = async (req, res, next) => {
       mediaUrl,
       mediaType,
     );
+
+    // Real-time: push the new message to everyone in the conversation room
+    try {
+      getIo()
+        .to(`conv:${id}`)
+        .emit("message:new", { conversationId: id, message });
+      // Also ping the recipient's personal room in case they haven't joined the conv room yet
+      if (message.receiverId) {
+        getIo()
+          .to(`user:${message.receiverId}`)
+          .emit("message:new", { conversationId: id, message });
+      }
+    } catch (_) {}
+
     res.status(201).json({ success: true, data: message });
   } catch (error) {
     next(error);
@@ -89,6 +104,14 @@ const markAsRead = async (req, res, next) => {
   try {
     const { id } = req.params;
     const result = await messageService.markAsRead(id, req.user.id);
+
+    // Real-time: notify the conversation that messages were read
+    try {
+      getIo()
+        .to(`conv:${id}`)
+        .emit("message:read", { conversationId: id, readBy: req.user.id });
+    } catch (_) {}
+
     res.json({ success: true, ...result });
   } catch (error) {
     next(error);
