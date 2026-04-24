@@ -27,6 +27,7 @@ const getListings = async (req, res, next) => {
       maxEngine,
       minSeats,
       maxSeats,
+      seats,
       sortBy,
       sortOrder,
       search,
@@ -57,6 +58,7 @@ const getListings = async (req, res, next) => {
       maxEngine,
       minSeats,
       maxSeats,
+      seats,
       sortBy,
       sortOrder,
       search,
@@ -104,6 +106,13 @@ const getMyListings = async (req, res, next) => {
 
 const createListing = async (req, res, next) => {
   try {
+    if (req.files && req.files.length > 20) {
+      return res.status(400).json({
+        success: false,
+        message: "Too many images. Maximum 20 images allowed per listing.",
+        field: "images",
+      });
+    }
     const listing = await listingService.createListing(
       req.user.id,
       req.body,

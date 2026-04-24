@@ -74,6 +74,7 @@ const getListings = async ({
   maxEngine,
   minSeats,
   maxSeats,
+  seats,
   sortBy,
   sortOrder,
   search,
@@ -141,6 +142,13 @@ const getListings = async ({
     where.seats = {};
     if (minSeats) where.seats.gte = parseInt(minSeats, 10);
     if (maxSeats) where.seats.lte = parseInt(maxSeats, 10);
+  }
+  if (seats) {
+    const seatValues = (Array.isArray(seats) ? seats : [seats])
+      .map((s) => parseInt(s, 10))
+      .filter((s) => !isNaN(s));
+    if (seatValues.length === 1) where.seats = seatValues[0];
+    else if (seatValues.length > 1) where.seats = { in: seatValues };
   }
   if (minDays || maxDays) {
     const now = Date.now();

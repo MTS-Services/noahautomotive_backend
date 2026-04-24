@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const multer = require("multer");
 const listingController = require("../controllers/listingController");
 const { authenticate, optionalAuthenticate } = require("../middleware/auth");
 const { authorize } = require("../middleware/role");
@@ -23,20 +24,39 @@ router.get(
 );
 router.get("/:id", optionalAuthenticate, listingController.getListingById);
 
+// Multer error handler — must wrap upload to catch LIMIT_UNEXPECTED_FILE / LIMIT_FILE_COUNT
+const withUpload = (handler) => (req, res, next) => {
+  listingUpload.array("images", 20)(req, res, (err) => {
+    if (
+      err instanceof multer.MulterError &&
+      err.code === "LIMIT_UNEXPECTED_FILE"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Too many images. Maximum 20 images allowed per listing.",
+        field: "images",
+      });
+    }
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({ success: false, message: err.message });
+    }
+    if (err) return next(err);
+    handler(req, res, next);
+  });
+};
+
 router.post(
   "/",
   authenticate,
   authorize("VENDOR"),
-  listingUpload.array("images", 10),
-  validateListing,
+  withUpload(validateListing),
   listingController.createListing,
 );
 router.put(
   "/:id",
   authenticate,
   authorize("VENDOR", "ADMIN"),
-  listingUpload.array("images", 10),
-  validateListing,
+  withUpload(validateListing),
   listingController.updateListing,
 );
 router.delete(
