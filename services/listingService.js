@@ -86,6 +86,11 @@ const getListings = async ({
   vehicleHistory,
   color,
   doors,
+  minFuelEconomy,
+  maxFuelEconomy,
+  minEngineSize,
+  maxEngineSize,
+  withPhotos,
 }) => {
   const { skip, take } = paginate(page, limit);
 
@@ -137,6 +142,20 @@ const getListings = async ({
     where.horsepower = {};
     if (minEngine) where.horsepower.gte = parseInt(minEngine, 10);
     if (maxEngine) where.horsepower.lte = parseInt(maxEngine, 10);
+  }
+  if (minFuelEconomy || maxFuelEconomy) {
+    where.fuelEconomy = {};
+    if (minFuelEconomy) where.fuelEconomy.gte = parseInt(minFuelEconomy, 10);
+    if (maxFuelEconomy) where.fuelEconomy.lte = parseInt(maxFuelEconomy, 10);
+  }
+  if (minEngineSize || maxEngineSize) {
+    where.engineSize = {};
+    if (minEngineSize) where.engineSize.gte = parseFloat(minEngineSize);
+    if (maxEngineSize) where.engineSize.lte = parseFloat(maxEngineSize);
+  }
+
+  if (withPhotos === "true" || withPhotos === true) {
+    where.images = { some: {} };
   }
   if (minSeats || maxSeats) {
     where.seats = {};

@@ -39,6 +39,11 @@ const getListings = async (req, res, next) => {
       vehicleHistory,
       color,
       doors,
+      minFuelEconomy,
+      maxFuelEconomy,
+      minEngineSize,
+      maxEngineSize,
+      withPhotos,
     } = req.query;
     const result = await listingService.getListings({
       page,
@@ -70,6 +75,11 @@ const getListings = async (req, res, next) => {
       vehicleHistory,
       color,
       doors,
+      minFuelEconomy,
+      maxFuelEconomy,
+      minEngineSize,
+      maxEngineSize,
+      withPhotos,
     });
     res.json({ success: true, data: result });
   } catch (error) {
