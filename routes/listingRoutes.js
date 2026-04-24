@@ -4,6 +4,7 @@ const listingController = require("../controllers/listingController");
 const { authenticate, optionalAuthenticate } = require("../middleware/auth");
 const { authorize } = require("../middleware/role");
 const { listingUpload } = require("../middleware/upload");
+const { validateListing } = require("../middleware/validate");
 
 // ─── Public ───────────────────────────────────────────────────────────────────
 
@@ -27,6 +28,7 @@ router.post(
   authenticate,
   authorize("VENDOR"),
   listingUpload.array("images", 10),
+  validateListing,
   listingController.createListing,
 );
 router.put(
@@ -34,6 +36,7 @@ router.put(
   authenticate,
   authorize("VENDOR", "ADMIN"),
   listingUpload.array("images", 10),
+  validateListing,
   listingController.updateListing,
 );
 router.delete(

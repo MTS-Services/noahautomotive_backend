@@ -6,6 +6,20 @@ const {
 } = require("../utils/helpers");
 const { geocodeAddress, geocodeSearchLocation } = require("./geocodeService");
 
+// Attach computed fields to any listing object
+const withComputed = (listing) => {
+  if (!listing) return listing;
+  const daysOnMarket = listing.approvedAt
+    ? Math.floor(
+        (Date.now() - new Date(listing.approvedAt).getTime()) / 86400000,
+      )
+    : null;
+  const hasPhotos = Array.isArray(listing.images)
+    ? listing.images.length > 0
+    : false;
+  return { ...listing, daysOnMarket, hasPhotos };
+};
+
 const LISTING_SELECT = {
   id: true,
   title: true,
@@ -18,16 +32,21 @@ const LISTING_SELECT = {
   make: true,
   model: true,
   engine: true,
+  engineSize: true,
   horsepower: true,
   color: true,
   doors: true,
   seats: true,
   condition: true,
+  type: true,
   sellerName: true,
   address: true,
+  fuelEconomy: true,
+  vehicleHistory: true,
   latitude: true,
   longitude: true,
   status: true,
+  approvedAt: true,
   createdAt: true,
   updatedAt: true,
   vendor: {
@@ -60,6 +79,12 @@ const getListings = async ({
   search,
   location,
   radius,
+  type,
+  minDays,
+  maxDays,
+  vehicleHistory,
+  color,
+  doors,
 }) => {
   const { skip, take } = paginate(page, limit);
 
@@ -70,6 +95,27 @@ const getListings = async ({
   if (fuel) where.fuel = fuel;
   if (transmission) where.transmission = transmission;
   if (condition) where.condition = condition;
+  if (type) where.type = type.toUpperCase();
+  if (color) where.color = { equals: color, mode: "insensitive" };
+  if (doors) {
+    const doorValues = (Array.isArray(doors) ? doors : [doors])
+      .map((d) => parseInt(d, 10))
+      .filter((d) => !isNaN(d));
+    if (doorValues.length === 1) where.doors = doorValues[0];
+    else if (doorValues.length > 1) where.doors = { in: doorValues };
+  }
+  if (vehicleHistory) {
+    const items = Array.isArray(vehicleHistory)
+      ? vehicleHistory
+      : vehicleHistory
+          .toString()
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+    const normalised = items.map((v) => v.toString().toUpperCase());
+    // listing must contain ALL selected history values
+    where.vehicleHistory = { hasEvery: normalised };
+  }
 
   if (minPrice || maxPrice) {
     where.price = {};
@@ -95,6 +141,14 @@ const getListings = async ({
     where.seats = {};
     if (minSeats) where.seats.gte = parseInt(minSeats, 10);
     if (maxSeats) where.seats.lte = parseInt(maxSeats, 10);
+  }
+  if (minDays || maxDays) {
+    const now = Date.now();
+    where.approvedAt = { not: null };
+    if (maxDays)
+      where.approvedAt.gte = new Date(now - parseInt(maxDays, 10) * 86400000);
+    if (minDays)
+      where.approvedAt.lte = new Date(now - parseInt(minDays, 10) * 86400000);
   }
   if (search) {
     where.OR = [
@@ -158,11 +212,11 @@ const getListings = async ({
     const total = withinRadius.length;
     const p = Math.max(1, parseInt(page, 10));
     const l = Math.max(1, parseInt(limit, 10));
-    const listings = withinRadius.slice((p - 1) * l, p * l);
+    const listings = withinRadius.slice((p - 1) * l, p * l).map(withComputed);
     return { listings, pagination: buildPaginationMeta(total, page, limit) };
   }
   // ─────────────────────────────────────────────────────────────────────────
-  const [listings, total] = await prisma.$transaction([
+  const [rawListings, total] = await prisma.$transaction([
     prisma.listing.findMany({
       where,
       select: LISTING_SELECT,
@@ -173,7 +227,10 @@ const getListings = async ({
     prisma.listing.count({ where }),
   ]);
 
-  return { listings, pagination: buildPaginationMeta(total, page, limit) };
+  return {
+    listings: rawListings.map(withComputed),
+    pagination: buildPaginationMeta(total, page, limit),
+  };
 };
 
 const getListingById = async (id, requesterId = null, requesterRole = null) => {
@@ -188,10 +245,10 @@ const getListingById = async (id, requesterId = null, requesterRole = null) => {
     throw err;
   }
 
-  if (requesterRole === "ADMIN") return listing;
+  if (requesterRole === "ADMIN") return withComputed(listing);
 
   if (requesterRole === "VENDOR" && listing.vendor.id === requesterId)
-    return listing;
+    return withComputed(listing);
 
   if (listing.status !== "APPROVED") {
     const err = new Error("Listing not found");
@@ -199,7 +256,7 @@ const getListingById = async (id, requesterId = null, requesterRole = null) => {
     throw err;
   }
 
-  return listing;
+  return withComputed(listing);
 };
 
 const getMyListings = async (vendorId, { page, limit, status }) => {
@@ -254,13 +311,22 @@ const createListing = async (vendorId, data, imageFiles) => {
       make: data.make,
       model: data.model,
       engine: data.engine,
+      engineSize: data.engineSize != null ? parseFloat(data.engineSize) : null,
       horsepower: parseInt(data.horsepower, 10),
       color: data.color,
       doors: parseInt(data.doors, 10),
       seats: parseInt(data.seats, 10),
       condition: data.condition,
+      type: data.type || null,
       sellerName: data.sellerName,
       address: data.address,
+      fuelEconomy:
+        data.fuelEconomy != null ? parseInt(data.fuelEconomy, 10) : null,
+      vehicleHistory: Array.isArray(data.vehicleHistory)
+        ? data.vehicleHistory
+        : data.vehicleHistory
+          ? [data.vehicleHistory]
+          : [],
       latitude: coords?.latitude ?? null,
       longitude: coords?.longitude ?? null,
       vendor: { connect: { id: vendorId } },
@@ -319,6 +385,7 @@ const updateListing = async (
     "fuel",
     "transmission",
     "condition",
+    "type",
   ];
   stringFields.forEach((f) => {
     if (data[f] !== undefined) updateData[f] = data[f];
@@ -331,6 +398,18 @@ const updateListing = async (
     updateData.horsepower = parseInt(data.horsepower, 10);
   if (data.doors !== undefined) updateData.doors = parseInt(data.doors, 10);
   if (data.seats !== undefined) updateData.seats = parseInt(data.seats, 10);
+  if (data.engineSize !== undefined)
+    updateData.engineSize =
+      data.engineSize != null ? parseFloat(data.engineSize) : null;
+  if (data.fuelEconomy !== undefined)
+    updateData.fuelEconomy =
+      data.fuelEconomy != null ? parseInt(data.fuelEconomy, 10) : null;
+  if (data.vehicleHistory !== undefined)
+    updateData.vehicleHistory = Array.isArray(data.vehicleHistory)
+      ? data.vehicleHistory
+      : data.vehicleHistory
+        ? [data.vehicleHistory]
+        : [];
 
   // If address changed, re-geocode
   if (data.address !== undefined) {
@@ -432,7 +511,10 @@ const setListingStatus = async (id, status) => {
   }
   const listing = await prisma.listing.update({
     where: { id },
-    data: { status },
+    data: {
+      status,
+      approvedAt: status === "APPROVED" ? new Date() : existing.approvedAt,
+    },
     select: LISTING_SELECT,
   });
   return listing;
@@ -490,6 +572,34 @@ const getVendorDashboard = async (vendorId) => {
   };
 };
 
+// ─── Makes + Models (for filter dropdowns) ──────────────────────────────────
+// Returns every make that has at least 1 APPROVED listing,
+// each with its models and per-model count.
+
+const getMakesWithModels = async () => {
+  const rows = await prisma.listing.groupBy({
+    by: ["make", "model"],
+    where: { status: "APPROVED" },
+    _count: { _all: true },
+    orderBy: [{ make: "asc" }, { model: "asc" }],
+  });
+
+  // Group rows into { make → { model → count } }
+  const map = new Map();
+  for (const row of rows) {
+    if (!map.has(row.make)) map.set(row.make, { totalCount: 0, models: [] });
+    const entry = map.get(row.make);
+    entry.totalCount += row._count._all;
+    entry.models.push({ name: row.model, count: row._count._all });
+  }
+
+  return Array.from(map.entries()).map(([make, data]) => ({
+    make,
+    totalCount: data.totalCount,
+    models: data.models,
+  }));
+};
+
 module.exports = {
   getListings,
   getListingById,
@@ -501,4 +611,5 @@ module.exports = {
   getListingsByStatus,
   setListingStatus,
   getVendorDashboard,
+  getMakesWithModels,
 };

@@ -43,6 +43,20 @@ enum Condition {
   USED
 }
 
+enum VehicleType {
+  SUV
+  SEDAN
+  HATCHBACK
+  HYBRID
+  CONVERTIBLE
+}
+
+enum VehicleHistory {
+  NO_ACCIDENTS_REPORTED
+  NO_THEFT_HISTORY_REPORTED
+  NO_VEHICLE_DAMAGE_REPORTED
+}
+
 
 model User {
   id           String   @id @default(uuid())
@@ -80,14 +94,19 @@ model Listing {
   make         String
   model        String
   engine       String
+  engineSize   Decimal?         @db.Decimal(3, 1)  // e.g. 2.0, stored in litres
   horsepower   Int
   color        String
   doors        Int
   seats        Int
   condition    Condition
+  type         VehicleType?
   sellerName   String
   address      String
-  status       ListingStatus    @default(PENDING)
+  fuelEconomy     Int?             // mpg, range 4–50
+  vehicleHistory  VehicleHistory[]
+  status          ListingStatus    @default(PENDING)
+  approvedAt   DateTime?
   latitude     Float?
   longitude    Float?
   vendorId     String

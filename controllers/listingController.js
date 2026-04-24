@@ -3,6 +3,12 @@ const listingService = require("../services/listingService");
 // ─── Public ───────────────────────────────────────────────────────────────────
 const getListings = async (req, res, next) => {
   try {
+    // ?view=makes  →  return makes + models + counts instead of listings
+    if (req.query.view === "makes") {
+      const data = await listingService.getMakesWithModels();
+      return res.json({ success: true, data });
+    }
+
     const {
       page = 1,
       limit = 10,
@@ -26,6 +32,12 @@ const getListings = async (req, res, next) => {
       search,
       location,
       radius,
+      type,
+      minDays,
+      maxDays,
+      vehicleHistory,
+      color,
+      doors,
     } = req.query;
     const result = await listingService.getListings({
       page,
@@ -50,6 +62,12 @@ const getListings = async (req, res, next) => {
       search,
       location,
       radius,
+      type,
+      minDays,
+      maxDays,
+      vehicleHistory,
+      color,
+      doors,
     });
     res.json({ success: true, data: result });
   } catch (error) {
@@ -156,6 +174,16 @@ const getVendorDashboard = async (req, res, next) => {
   }
 };
 
+// GET /api/listings/makes
+const getMakesWithModels = async (req, res, next) => {
+  try {
+    const data = await listingService.getMakesWithModels();
+    res.json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getListings,
   getListingById,
@@ -165,4 +193,5 @@ module.exports = {
   deleteListingImage,
   deleteListing,
   getVendorDashboard,
+  getMakesWithModels,
 };
