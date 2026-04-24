@@ -12,13 +12,14 @@ const getUserProfile = async (req, res, next) => {
 
 const updateProfile = async (req, res, next) => {
   try {
-    const { fullName, phoneNumber, address, about } = req.body;
+    const { fullName, phoneNumber, address, postcode, about } = req.body;
     const profileImage = req.file ? buildFileUrl(req.file.filename) : undefined;
 
     const user = await userService.updateProfile(req.user.id, {
       fullName,
       phoneNumber,
       address,
+      postcode,
       about,
       profileImage,
     });

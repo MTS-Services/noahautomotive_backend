@@ -3,8 +3,16 @@ const { buildFileUrl } = require("../utils/helpers");
 
 const register = async (req, res, next) => {
   try {
-    const { fullName, email, phoneNumber, password, address, about, role } =
-      req.body;
+    const {
+      fullName,
+      email,
+      phoneNumber,
+      password,
+      address,
+      postcode,
+      about,
+      role,
+    } = req.body;
     const profileImage = req.file ? buildFileUrl(req.file.filename) : null;
 
     const result = await authService.register({
@@ -13,6 +21,7 @@ const register = async (req, res, next) => {
       phoneNumber,
       password,
       address,
+      postcode,
       about,
       profileImage,
       role,

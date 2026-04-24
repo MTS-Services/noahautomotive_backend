@@ -10,6 +10,7 @@ const getUserProfile = async (userId) => {
       email: true,
       phoneNumber: true,
       address: true,
+      postcode: true,
       about: true,
       profileImage: true,
       role: true,
@@ -28,13 +29,14 @@ const getUserProfile = async (userId) => {
 
 const updateProfile = async (
   userId,
-  { fullName, phoneNumber, address, about, profileImage },
+  { fullName, phoneNumber, address, postcode, about, profileImage },
 ) => {
   const data = {};
 
   if (fullName !== undefined) data.fullName = fullName.toString().trim();
   if (phoneNumber !== undefined) data.phoneNumber = phoneNumber;
   if (address !== undefined) data.address = address;
+  if (postcode !== undefined) data.postcode = postcode;
   if (about !== undefined) data.about = about;
   if (profileImage !== undefined) data.profileImage = profileImage;
 
@@ -53,6 +55,7 @@ const updateProfile = async (
       email: true,
       phoneNumber: true,
       address: true,
+      postcode: true,
       about: true,
       profileImage: true,
       role: true,

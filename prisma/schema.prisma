@@ -65,6 +65,7 @@ model User {
   phoneNumber  String?
   password     String
   address      String?
+  postcode     String?
   about        String?
   profileImage String?
   role         Role     @default(USER)
