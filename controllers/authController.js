@@ -29,10 +29,18 @@ const register = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: "Registration successful",
-      data: result,
+      message: result.message,
+      data: { email: result.email },
     });
   } catch (error) {
+    if (error.code === "EMAIL_NOT_VERIFIED") {
+      return res.status(409).json({
+        success: false,
+        message: error.message,
+        code: "EMAIL_NOT_VERIFIED",
+        email: error.email,
+      });
+    }
     next(error);
   }
 };
@@ -43,6 +51,14 @@ const login = async (req, res, next) => {
     const result = await authService.login({ email, password });
     res.json({ success: true, message: "Login successful", data: result });
   } catch (error) {
+    if (error.code === "EMAIL_NOT_VERIFIED") {
+      return res.status(403).json({
+        success: false,
+        message: error.message,
+        code: "EMAIL_NOT_VERIFIED",
+        email: error.email,
+      });
+    }
     next(error);
   }
 };
@@ -102,6 +118,30 @@ const logout = (req, res) => {
   res.json({ success: true, message: "Logged out successfully" });
 };
 
+const verifyEmail = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+    const result = await authService.verifyEmailOTP(email, otp);
+    res.json({
+      success: true,
+      message: result.message,
+      data: { user: result.user, token: result.token },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const resendVerification = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const result = await authService.resendVerificationOTP(email);
+    res.json({ success: true, ...result });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -110,4 +150,6 @@ module.exports = {
   resetPassword,
   getMe,
   logout,
+  verifyEmail,
+  resendVerification,
 };

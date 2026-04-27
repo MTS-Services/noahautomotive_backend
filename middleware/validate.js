@@ -255,4 +255,18 @@ module.exports = {
   validateUpdateProfile,
   validateChangePassword,
   validateListing,
+  validateVerifyEmail: (req, res, next) => {
+    const { email, otp } = req.body;
+    if (!email || !validateEmail(email))
+      return fail(res, "A valid email address is required", "email");
+    if (!otp || !/^\d{5}$/.test(otp.toString()))
+      return fail(res, "OTP must be a 5-digit number", "otp");
+    next();
+  },
+  validateResendVerification: (req, res, next) => {
+    const { email } = req.body;
+    if (!email || !validateEmail(email))
+      return fail(res, "A valid email address is required", "email");
+    next();
+  },
 };

@@ -9,6 +9,8 @@ const {
   validateForgotPassword,
   validateVerifyOTP,
   validateResetPassword,
+  validateVerifyEmail,
+  validateResendVerification,
 } = require("../middleware/validate");
 
 router.post(
@@ -27,6 +29,13 @@ router.post(
 );
 
 router.post("/verify-otp", validateVerifyOTP, authController.verifyOTP);
+
+router.post("/verify-email", validateVerifyEmail, authController.verifyEmail);
+router.post(
+  "/resend-verification",
+  validateResendVerification,
+  authController.resendVerification,
+);
 
 router.post(
   "/reset-password",

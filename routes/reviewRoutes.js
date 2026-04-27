@@ -6,7 +6,12 @@ const { authorize } = require("../middleware/role");
 
 router.get("/listing/:listingId", reviewController.getListingReviews);
 
-router.post("/listing/:listingId", authenticate, reviewController.createReview);
+router.post(
+  "/listing/:listingId",
+  authenticate,
+  authorize("USER"),
+  reviewController.createReview,
+);
 router.put("/:id", authenticate, reviewController.updateReview);
 router.delete("/:id", authenticate, reviewController.deleteReview);
 

@@ -27,7 +27,7 @@ const sendOTPEmail = async (to, otp, name) => {
         <div style="background:#f4f4f4;border-radius:8px;padding:24px;text-align:center;margin:24px 0;">
           <span style="font-size:36px;font-weight:bold;letter-spacing:12px;color:#6C5CE7;">${otp}</span>
         </div>
-        <p>This code is valid for <strong>10 minutes</strong>.</p>
+        <p>This code is valid for <strong>1 minute</strong>.</p>
         <p>If you did not request this, please ignore this email.</p>
         <hr style="border:none;border-top:1px solid #eee;margin:24px 0;" />
         <p style="color:#888;font-size:12px;">© Noah Automotive. All rights reserved.</p>
