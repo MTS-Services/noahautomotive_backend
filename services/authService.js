@@ -254,6 +254,7 @@ const getProfile = async (userId) => {
       postcode: true,
       about: true,
       profileImage: true,
+      bannerImage: true,
       role: true,
       createdAt: true,
     },

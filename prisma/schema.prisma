@@ -68,6 +68,7 @@ model User {
   postcode     String?
   about        String?
   profileImage String?
+  bannerImage  String?
   role         Role     @default(USER)
   isActive     Boolean  @default(true)
   isEmailVerified Boolean @default(false)

@@ -13,7 +13,25 @@ const getUserProfile = async (req, res, next) => {
 const updateProfile = async (req, res, next) => {
   try {
     const { fullName, phoneNumber, address, postcode, about } = req.body;
-    const profileImage = req.file ? buildFileUrl(req.file.filename) : undefined;
+
+    // Support both upload.single (legacy) and upload.fields
+    const profileFile = req.files?.profileImage?.[0] ?? req.file;
+    const bannerFile = req.files?.bannerImage?.[0];
+
+    const profileImage = profileFile
+      ? buildFileUrl(profileFile.filename)
+      : undefined;
+
+    let bannerImage;
+    if (bannerFile) {
+      if (req.user.role !== "VENDOR") {
+        return res.status(403).json({
+          success: false,
+          message: "Only vendors can upload a banner image",
+        });
+      }
+      bannerImage = buildFileUrl(bannerFile.filename);
+    }
 
     const user = await userService.updateProfile(req.user.id, {
       fullName,
@@ -22,6 +40,7 @@ const updateProfile = async (req, res, next) => {
       postcode,
       about,
       profileImage,
+      bannerImage,
     });
 
     res.json({

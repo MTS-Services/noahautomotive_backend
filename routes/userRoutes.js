@@ -14,7 +14,7 @@ router.get("/:id", userController.getUserProfile);
 router.put(
   "/profile",
   authenticate,
-  upload.single("profileImage"),
+  upload.profileUpload,
   validateUpdateProfile,
   userController.updateProfile,
 );

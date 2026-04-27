@@ -98,5 +98,9 @@ const listingUpload = multer({
 });
 
 module.exports = upload;
+module.exports.profileUpload = upload.fields([
+  { name: "profileImage", maxCount: 1 },
+  { name: "bannerImage", maxCount: 1 },
+]);
 module.exports.chatUpload = chatUpload;
 module.exports.listingUpload = listingUpload;

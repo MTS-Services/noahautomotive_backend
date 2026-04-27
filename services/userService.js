@@ -13,6 +13,7 @@ const getUserProfile = async (userId) => {
       postcode: true,
       about: true,
       profileImage: true,
+      bannerImage: true,
       role: true,
       createdAt: true,
     },
@@ -29,7 +30,15 @@ const getUserProfile = async (userId) => {
 
 const updateProfile = async (
   userId,
-  { fullName, phoneNumber, address, postcode, about, profileImage },
+  {
+    fullName,
+    phoneNumber,
+    address,
+    postcode,
+    about,
+    profileImage,
+    bannerImage,
+  },
 ) => {
   const data = {};
 
@@ -39,6 +48,7 @@ const updateProfile = async (
   if (postcode !== undefined) data.postcode = postcode;
   if (about !== undefined) data.about = about;
   if (profileImage !== undefined) data.profileImage = profileImage;
+  if (bannerImage !== undefined) data.bannerImage = bannerImage;
 
   if (Object.keys(data).length === 0) {
     const err = new Error("No fields provided to update");
@@ -58,6 +68,7 @@ const updateProfile = async (
       postcode: true,
       about: true,
       profileImage: true,
+      bannerImage: true,
       role: true,
       updatedAt: true,
     },
