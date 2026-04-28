@@ -118,6 +118,7 @@ const getVendorProfile = async (vendorId, { page = 1, limit = 10 }) => {
       address: true,
       about: true,
       profileImage: true,
+      bannerImage: true,
       createdAt: true,
     },
   });

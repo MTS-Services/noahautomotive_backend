@@ -97,15 +97,15 @@ model Listing {
   make         String
   model        String
   engine       String
-  engineSize   Decimal?         @db.Decimal(3, 1)  // e.g. 2.0, stored in litres
+  engineSize   Decimal?         @db.Decimal(3, 1)  
   horsepower   Int
   color        String
   doors        Int
   seats        Int
   condition    Condition
   type         VehicleType?
-  sellerName   String
-  address      String
+  sellerName   String?
+  address      String?
   fuelEconomy     Int?             // mpg, range 4–50
   vehicleHistory  VehicleHistory[]
   status          ListingStatus    @default(PENDING)
