@@ -50,7 +50,13 @@ const LISTING_SELECT = {
   createdAt: true,
   updatedAt: true,
   vendor: {
-    select: { id: true, fullName: true, email: true, profileImage: true },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      profileImage: true,
+      bannerImage: true,
+    },
   },
   images: { select: { id: true, url: true }, orderBy: { createdAt: "asc" } },
   _count: { select: { reviews: true } },
