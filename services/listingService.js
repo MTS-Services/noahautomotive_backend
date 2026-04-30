@@ -56,6 +56,7 @@ const LISTING_SELECT = {
       email: true,
       profileImage: true,
       bannerImage: true,
+      accountType: true,
     },
   },
   images: { select: { id: true, url: true }, orderBy: { createdAt: "asc" } },
