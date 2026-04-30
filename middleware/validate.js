@@ -5,7 +5,7 @@ const fail = (res, message, field) =>
   res.status(400).json({ success: false, message, ...(field && { field }) });
 
 const validateRegister = (req, res, next) => {
-  const { fullName, email, password, role } = req.body;
+  const { fullName, email, password, role, accountType } = req.body;
 
   if (!fullName || !fullName.toString().trim()) {
     return fail(res, "Full name is required", "fullName");
@@ -18,6 +18,28 @@ const validateRegister = (req, res, next) => {
   }
   if (role && !["USER", "VENDOR", "ADMIN"].includes(role)) {
     return fail(res, "Role must be USER, VENDOR or ADMIN", "role");
+  }
+  if (role === "VENDOR") {
+    if (!accountType) {
+      return fail(
+        res,
+        "Account type is required for vendors (PERSONAL or BUSINESS)",
+        "accountType",
+      );
+    }
+    if (
+      !["PERSONAL", "BUSINESS"].includes(accountType.toString().toUpperCase())
+    ) {
+      return fail(
+        res,
+        "Account type must be PERSONAL or BUSINESS",
+        "accountType",
+      );
+    }
+    req.body.accountType = accountType.toString().toUpperCase();
+  } else if (accountType !== undefined) {
+    // Non-vendor cannot set accountType
+    delete req.body.accountType;
   }
 
   next();

@@ -15,6 +15,7 @@ const getUserProfile = async (userId) => {
       profileImage: true,
       bannerImage: true,
       role: true,
+      accountType: true,
       createdAt: true,
     },
   });
@@ -70,6 +71,7 @@ const updateProfile = async (
       profileImage: true,
       bannerImage: true,
       role: true,
+      accountType: true,
       updatedAt: true,
     },
   });
@@ -119,6 +121,7 @@ const getVendorProfile = async (vendorId, { page = 1, limit = 10 }) => {
       about: true,
       profileImage: true,
       bannerImage: true,
+      accountType: true,
       createdAt: true,
     },
   });

@@ -17,6 +17,11 @@ enum Role {
   VENDOR
 }
 
+enum AccountType {
+  PERSONAL
+  BUSINESS
+}
+
 enum ListingStatus {
   PENDING
   APPROVED
@@ -70,6 +75,7 @@ model User {
   profileImage String?
   bannerImage  String?
   role         Role     @default(USER)
+  accountType  AccountType?
   isActive     Boolean  @default(true)
   isEmailVerified Boolean @default(false)
   createdAt    DateTime @default(now())
@@ -96,7 +102,7 @@ model Listing {
   transmission TransmissionType
   make         String
   model        String
-  engine       String
+  engine       String?
   engineSize   Decimal?         @db.Decimal(3, 1)  
   horsepower   Int
   color        String

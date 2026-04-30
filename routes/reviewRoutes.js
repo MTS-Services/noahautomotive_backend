@@ -9,7 +9,7 @@ router.get("/listing/:listingId", reviewController.getListingReviews);
 router.post(
   "/listing/:listingId",
   authenticate,
-  authorize("USER"),
+  authorize("USER", "VENDOR"),
   reviewController.createReview,
 );
 router.put("/:id", authenticate, reviewController.updateReview);

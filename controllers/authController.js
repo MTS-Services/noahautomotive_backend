@@ -12,6 +12,7 @@ const register = async (req, res, next) => {
       postcode,
       about,
       role,
+      accountType,
     } = req.body;
     const profileImage = req.file ? buildFileUrl(req.file.filename) : null;
 
@@ -25,6 +26,7 @@ const register = async (req, res, next) => {
       about,
       profileImage,
       role,
+      accountType,
     });
 
     res.status(201).json({

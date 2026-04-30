@@ -25,6 +25,7 @@ const register = async ({
   about,
   profileImage,
   role,
+  accountType,
 }) => {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
@@ -67,6 +68,7 @@ const register = async ({
       about,
       profileImage,
       role: role || "USER",
+      accountType: role === "VENDOR" ? accountType : null,
       isEmailVerified: false,
     },
     select: {
@@ -256,6 +258,7 @@ const getProfile = async (userId) => {
       profileImage: true,
       bannerImage: true,
       role: true,
+      accountType: true,
       createdAt: true,
     },
   });

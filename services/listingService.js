@@ -396,13 +396,6 @@ const updateListing = async (
       err.statusCode = 403;
       throw err;
     }
-    if (!["PENDING", "REJECTED"].includes(existing.status)) {
-      const err = new Error(
-        "You can only edit listings that are PENDING or REJECTED",
-      );
-      err.statusCode = 403;
-      throw err;
-    }
   }
 
   const updateData = {};
