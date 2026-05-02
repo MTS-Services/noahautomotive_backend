@@ -15,10 +15,23 @@ const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 
+const ALLOWED_ORIGINS = [
+  "http://localhost:5173",
+  "https://c4r.co.uk",
+  "https://www.c4r.co.uk",
+];
+
 app.use(
   cors({
-    origin: "*",
-    credentials: false,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, Postman)
+      if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS: origin '${origin}' not allowed`));
+      }
+    },
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),

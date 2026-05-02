@@ -17,8 +17,13 @@ const start = async () => {
 
     const io = new Server(server, {
       cors: {
-        origin: "*",
+        origin: [
+          "http://localhost:5173",
+          "https://c4r.co.uk",
+          "https://www.c4r.co.uk",
+        ],
         methods: ["GET", "POST"],
+        credentials: true,
       },
     });
 
