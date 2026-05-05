@@ -1,40 +1,33 @@
 const axios = require("axios");
 
+const GOOGLE_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+
 /**
  * Convert an address string to { latitude, longitude }
- * Uses OpenStreetMap Nominatim — free, no API key required.
- * Biased toward the UK (countrycodes=gb).
+ * Uses Google Maps Geocoding API.
  */
 const geocodeAddress = async (address) => {
   if (!address) return null;
 
   try {
     const response = await axios.get(
-      "https://nominatim.openstreetmap.org/search",
+      "https://maps.googleapis.com/maps/api/geocode/json",
       {
-        params: {
-          q: address,
-          format: "json",
-          //countrycodes: "gb",
-          limit: 1,
-        },
-        headers: {
-          "User-Agent": "NoahAutomotiveApp/1.0",
-        },
+        params: { address, key: GOOGLE_API_KEY },
         timeout: 5000,
       },
     );
 
-    const results = response.data;
-    if (!results || !results.length) {
-      console.error(`[Geocode] No results for "${address}"`);
+    const data = response.data;
+    if (data.status !== "OK" || !data.results || !data.results.length) {
+      console.error(
+        `[Geocode] No results for "${address}" — status: ${data.status}`,
+      );
       return null;
     }
 
-    return {
-      latitude: parseFloat(results[0].lat),
-      longitude: parseFloat(results[0].lon),
-    };
+    const { lat, lng } = data.results[0].geometry.location;
+    return { latitude: lat, longitude: lng };
   } catch (err) {
     console.error(`[Geocode] Exception for "${address}":`, err.message);
     return null;
@@ -47,75 +40,68 @@ const geocodeSearchLocation = async (location) => {
 
 /**
  * Return up to `limit` address suggestions for a partial query string.
- * Used for frontend autocomplete dropdowns.
+ * Uses Google Places Autocomplete API.
  * Each result: { display, type, latitude, longitude }
  */
 const getAddressSuggestions = async (query, limit = 8) => {
   if (!query || query.trim().length < 2) return [];
 
   try {
-    const response = await axios.get(
-      "https://nominatim.openstreetmap.org/search",
+    // Step 1: Get place predictions
+    const autoResponse = await axios.get(
+      "https://maps.googleapis.com/maps/api/place/autocomplete/json",
       {
         params: {
-          q: query,
-          format: "json",
-          limit: Math.min(limit, 10),
-          addressdetails: 1,
-          namedetails: 1,
-          extratags: 1,
-          "accept-language": "en",
-        },
-        headers: {
-          "User-Agent": "NoahAutomotiveApp/1.0",
+          input: query,
+          key: GOOGLE_API_KEY,
+          language: "en",
+          types: "geocode",
         },
         timeout: 8000,
       },
     );
 
-    const seen = new Set();
+    const predictions = (autoResponse.data.predictions || []).slice(
+      0,
+      Math.min(limit, 10),
+    );
 
-    return (response.data || [])
-      .map((r) => {
-        const a = r.address || {};
+    if (!predictions.length) return [];
 
-        // Most specific place name first (neighbourhood → suburb → road → city)
-        const placeName =
-          a.neighbourhood ||
-          a.suburb ||
-          a.quarter ||
-          a.road ||
-          a.pedestrian ||
-          a.city_block ||
-          null;
+    // Step 2: Get lat/lng for each prediction via Place Details
+    const results = await Promise.all(
+      predictions.map(async (p) => {
+        try {
+          const detailRes = await axios.get(
+            "https://maps.googleapis.com/maps/api/place/details/json",
+            {
+              params: {
+                place_id: p.place_id,
+                fields: "geometry,name",
+                key: GOOGLE_API_KEY,
+              },
+              timeout: 5000,
+            },
+          );
+          const loc = detailRes.data.result?.geometry?.location;
+          return {
+            display: p.description,
+            type: p.types?.[0] || "place",
+            latitude: loc?.lat ?? null,
+            longitude: loc?.lng ?? null,
+          };
+        } catch {
+          return {
+            display: p.description,
+            type: p.types?.[0] || "place",
+            latitude: null,
+            longitude: null,
+          };
+        }
+      }),
+    );
 
-        // City-level
-        const city =
-          a.city || a.town || a.village || a.municipality || a.county || null;
-
-        const region = a.state_district || a.state || a.region || null;
-
-        const country = a.country || null;
-
-        const parts = [placeName, city, region, country].filter(Boolean);
-
-        const deduped = parts.filter((p, i) => i === 0 || p !== parts[i - 1]);
-
-        const display =
-          deduped.length >= 2 ? deduped.join(", ") : r.display_name;
-
-        return {
-          display,
-          type: r.type || r.class || "place",
-          latitude: parseFloat(r.lat),
-          longitude: parseFloat(r.lon),
-        };
-      })
-      .filter((r) => {
-        if (seen.has(r.display)) return false;
-        seen.add(r.display);
-        return true;
-      });
+    return results;
   } catch (err) {
     console.error(`[Geocode] Suggestions error for "${query}":`, err.message);
     return [];
