@@ -5,6 +5,32 @@ const {
   buildFileUrl,
 } = require("../utils/helpers");
 const { geocodeAddress, geocodeSearchLocation } = require("./geocodeService");
+const sanitizeHtml = require("sanitize-html");
+
+const ALLOWED_HTML = {
+  allowedTags: [
+    "p",
+    "br",
+    "strong",
+    "b",
+    "em",
+    "i",
+    "u",
+    "ul",
+    "ol",
+    "li",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "blockquote",
+    "a",
+  ],
+  allowedAttributes: { a: ["href", "target"] },
+};
+
+const sanitizeAbout = (value) =>
+  value != null ? sanitizeHtml(value, ALLOWED_HTML) : value;
 
 // Attach computed fields to any listing object
 const withComputed = (listing) => {
@@ -336,7 +362,7 @@ const createListing = async (vendorId, data, imageFiles) => {
   const listing = await prisma.listing.create({
     data: {
       title: data.title,
-      about: data.about,
+      about: sanitizeAbout(data.about),
       price,
       year: parseInt(data.year, 10),
       mileage: parseInt(data.mileage, 10),
@@ -400,6 +426,9 @@ const updateListing = async (
   }
 
   const updateData = {};
+  // Sanitize rich-text about before writing to DB
+  if (data.about !== undefined) data.about = sanitizeAbout(data.about);
+
   const stringFields = [
     "title",
     "about",

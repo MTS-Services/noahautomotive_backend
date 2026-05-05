@@ -50,7 +50,7 @@ enum Condition {
 
 enum VehicleType {
   SUV
-  SEDAN
+  SALOON
   HATCHBACK
   HYBRID
   CONVERTIBLE
