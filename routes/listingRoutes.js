@@ -26,14 +26,14 @@ router.get("/:id", optionalAuthenticate, listingController.getListingById);
 
 // Multer error handler — must wrap upload to catch LIMIT_UNEXPECTED_FILE / LIMIT_FILE_COUNT
 const withUpload = (handler) => (req, res, next) => {
-  listingUpload.array("images", 20)(req, res, (err) => {
+  listingUpload.array("images", 40)(req, res, (err) => {
     if (
       err instanceof multer.MulterError &&
       err.code === "LIMIT_UNEXPECTED_FILE"
     ) {
       return res.status(400).json({
         success: false,
-        message: "Too many images. Maximum 20 images allowed per listing.",
+        message: "Too many images. Maximum 40 images allowed per listing.",
         field: "images",
       });
     }

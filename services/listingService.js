@@ -49,6 +49,7 @@ const withComputed = (listing) => {
 const LISTING_SELECT = {
   id: true,
   title: true,
+  subTitle: true,
   about: true,
   price: true,
   year: true,
@@ -362,6 +363,7 @@ const createListing = async (vendorId, data, imageFiles) => {
   const listing = await prisma.listing.create({
     data: {
       title: data.title,
+      subTitle: data.subTitle || null,
       about: sanitizeAbout(data.about),
       price,
       year: parseInt(data.year, 10),
@@ -431,6 +433,7 @@ const updateListing = async (
 
   const stringFields = [
     "title",
+    "subTitle",
     "about",
     "sellerName",
     "address",
