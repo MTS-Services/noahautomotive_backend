@@ -374,7 +374,8 @@ const createListing = async (vendorId, data, imageFiles) => {
       model: data.model,
       engine: data.engine,
       engineSize: data.engineSize != null ? parseFloat(data.engineSize) : null,
-      horsepower: parseInt(data.horsepower, 10),
+      horsepower:
+        data.horsepower != null ? parseInt(data.horsepower, 10) : null,
       color: data.color,
       doors: parseInt(data.doors, 10),
       seats: parseInt(data.seats, 10),
@@ -454,7 +455,8 @@ const updateListing = async (
   if (data.mileage !== undefined)
     updateData.mileage = parseInt(data.mileage, 10);
   if (data.horsepower !== undefined)
-    updateData.horsepower = parseInt(data.horsepower, 10);
+    updateData.horsepower =
+      data.horsepower != null ? parseInt(data.horsepower, 10) : null;
   if (data.doors !== undefined) updateData.doors = parseInt(data.doors, 10);
   if (data.seats !== undefined) updateData.seats = parseInt(data.seats, 10);
   if (data.engineSize !== undefined)

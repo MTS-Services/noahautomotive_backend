@@ -105,7 +105,7 @@ model Listing {
   model        String
   engine       String?
   engineSize   Decimal?         @db.Decimal(3, 1)  
-  horsepower   Int
+  horsepower   Int?
   color        String
   doors        Int
   seats        Int
