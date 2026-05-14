@@ -20,6 +20,7 @@ const errorHandler = (err, req, res, next) => {
       .json({ success: false, message: "File size exceeds 60 MB limit" });
   }
 
+  // Handle Multer file count limit error
   const statusCode = err.statusCode || 500;
   res.status(statusCode).json({
     success: false,
