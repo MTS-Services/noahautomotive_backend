@@ -86,7 +86,10 @@ const LISTING_SELECT = {
       accountType: true,
     },
   },
-  images: { select: { id: true, url: true }, orderBy: { createdAt: "asc" } },
+  images: {
+    select: { id: true, url: true },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+  },
   _count: { select: { reviews: true } },
 };
 
