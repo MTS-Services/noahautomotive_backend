@@ -87,8 +87,8 @@ const LISTING_SELECT = {
     },
   },
   images: {
-    select: { id: true, url: true },
-    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+    select: { id: true, url: true, order: true },
+    orderBy: { order: "asc" },
   },
   _count: { select: { reviews: true } },
 };
@@ -398,8 +398,9 @@ const createListing = async (vendorId, data, imageFiles) => {
       vendor: { connect: { id: vendorId } },
       images: imageFiles?.length
         ? {
-            create: imageFiles.map((f) => ({
+            create: imageFiles.map((f, i) => ({
               url: buildFileUrl(`listings/${f.filename}`),
+              order: i,
             })),
           }
         : undefined,
@@ -488,9 +489,17 @@ const updateListing = async (
   }
 
   if (imageFiles?.length) {
+    // Find the current highest order index so new images are appended after existing ones
+    const lastImage = await prisma.listingImage.findFirst({
+      where: { listingId: id },
+      orderBy: { order: "desc" },
+      select: { order: true },
+    });
+    const startOrder = lastImage ? lastImage.order + 1 : 0;
     updateData.images = {
-      create: imageFiles.map((f) => ({
+      create: imageFiles.map((f, i) => ({
         url: buildFileUrl(`listings/${f.filename}`),
+        order: startOrder + i,
       })),
     };
   }

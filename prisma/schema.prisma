@@ -133,6 +133,7 @@ model Listing {
 model ListingImage {
   id        String   @id @default(uuid())
   url       String
+  order     Int      @default(0)
   listingId String
   createdAt DateTime @default(now())
 
