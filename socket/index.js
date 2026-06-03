@@ -21,6 +21,7 @@ const initSocket = (io) => {
       next(new Error("Invalid or expired token"));
     }
   });
+  // ── Handle socket connections ─────────────────────────────────────────────
 
   io.on("connection", (socket) => {
     const userId = socket.userId;
